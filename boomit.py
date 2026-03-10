@@ -3,6 +3,14 @@ from Player_basics import *
 from board import boards
 
 pygame.init()
+pygame.mixer.init() # music & sounds
+
+# background music
+try:
+    pygame.mixer.music.load("sounds/stateside_zara_larsson_sound.mp3")
+    pygame.mixer.music.play(-1)
+except pygame.error:
+    print("Nie znaleziono pliku muzycznego, gra uruchomi się bez dźwięku.")
 
 # basic stuff
 WIDTH, HEIGHT = 935, 714
