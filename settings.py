@@ -38,10 +38,10 @@ BOARD = [ [2, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 2],
 MUSIC_PATH = "sounds/stateside_zara_larsson_sound.mp3"
 
 # Graphics
-PLAYER_IDLE_PATH = "assets/player_images/loki_idle.png"
-PLAYER_MOVE_PATH = "assets/player_images/loki_move.png"
-PLAYER_HATCH_PATH = "assets/player_images/loki_hatch.png"
-EGG_SHAKE_PATH = "assets/player_images/loki_egg_move.png"
+PLAYER_IDLE_PATH = "assets/player_images/player_0/player_0_idle.png"
+PLAYER_MOVE_PATH = "assets/player_images/player_0/player_0_move.png"
+PLAYER_HATCH_PATH = "assets/player_images/player_0/player_0_hatch.png"
+EGG_SHAKE_PATH = "assets/player_images/player_0/player_0_egg_move.png"
 
 # game
 ICON_PATH = "assets/bombs/bomb_icon.png"

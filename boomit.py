@@ -33,7 +33,9 @@ player = Player(start_x, start_y, game_board.tile_size)
 
 game_state = "shaking"
 
-# Functions
+
+# game loop
+
 running = True
 while running:
     timer.tick(FPS)
