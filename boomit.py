@@ -1,6 +1,7 @@
 from board import Board
 from settings import *
 from player import Player
+from menu import MainMenu
 
 pygame.init()
 pygame.mixer.init()
@@ -31,7 +32,9 @@ start_x = game_board.offset_x + game_board.tile_size
 start_y = game_board.offset_y + game_board.tile_size
 player = Player(start_x, start_y, game_board.tile_size)
 
-game_state = "shaking"
+main_menu = MainMenu()
+
+game_state = "menu"
 
 
 # game loop
@@ -39,28 +42,33 @@ game_state = "shaking"
 running = True
 while running:
     timer.tick(FPS)
-    game_board.draw(screen)
     is_moving = False
-
-
-    if game_state == "shaking":
-        if player.shake_timer >= SHAKE_DURATION:
-            game_state = "hatching"
-
-    elif game_state == "hatching":
-        if int(player.hatch_frame_index) >= len(player.hatch_frames):
-            game_state = "playing"
-
-    elif game_state == "playing":
-        player_center = (player.x + player.size / 2, player.y + player.size / 2)
-        move_allowed = game_board.check_position(player_center, player.size)
-        is_moving = player.move(move_allowed)
-
-    player.draw(screen, game_state, is_moving)
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+
+        if game_state == "menu":
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
+                game_state = "shaking"
+
+    if game_state == "menu":
+        main_menu.draw(screen)
+
+    else:
+        game_board.draw(screen)
+        if game_state == "shaking":
+            if player.shake_timer >= SHAKE_DURATION:
+                game_state = "hatching"
+        elif game_state == "hatching":
+            if int(player.hatch_frame_index) >= len(player.hatch_frames):
+                game_state = "playing"
+        elif game_state == "playing":
+            player_center = (player.x + player.size / 2, player.y + player.size / 2)
+            move_allowed = game_board.check_position(player_center, player.size)
+            is_moving = player.move(move_allowed)
+
+        player.draw(screen, game_state, is_moving)
 
     pygame.display.flip()
 

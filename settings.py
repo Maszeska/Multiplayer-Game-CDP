@@ -45,6 +45,8 @@ EGG_SHAKE_PATH = "assets/player_images/player_0/player_0_egg_move.png"
 
 # game
 ICON_PATH = "assets/bombs/bomb_icon.png"
+BG_IMAGE_MENU = "assets/background/boomit_main_menu.png"
+MENU_FONT_PATH = "assets/fonts/PressStart2P-Regular.ttf"
 
 # --- Animation parameters ---
 ANIMATION_SPEED = 0.1
