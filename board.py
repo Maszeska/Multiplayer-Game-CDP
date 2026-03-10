@@ -2,11 +2,11 @@ from settings import *
 
 
 class Board:
-    def __init__(self, level_data):
-        self.level = level_data
-        self.tile_size = min(WIDTH / len(self.level[0]), HEIGHT / len(self.level))
-        self.offset_x = (WIDTH - (len(self.level[0]) * self.tile_size)) / 2
-        self.offset_y = (HEIGHT - (len(self.level) * self.tile_size)) / 2
+    def __init__(self, grid_data):
+        self.grid = grid_data
+        self.tile_size = min(WIDTH / len(self.grid[0]), HEIGHT / len(self.grid))
+        self.offset_x = (WIDTH - (len(self.grid[0]) * self.tile_size)) / 2
+        self.offset_y = (HEIGHT - (len(self.grid) * self.tile_size)) / 2
 
         # Creating surface
         self.surface = pygame.Surface((WIDTH, HEIGHT))
@@ -15,39 +15,37 @@ class Board:
 
     def _pre_render_board(self):
         line_size = 1
-        for i in range(len(self.level)):
-            for j in range(len(self.level[i])):
+        for i in range(len(self.grid)):
+            for j in range(len(self.grid[i])):
                 tile_x = int(j * self.tile_size + self.offset_x)
                 tile_y = int(i * self.tile_size + self.offset_y)
                 t_size = int(self.tile_size)
 
-                if self.level[i][j] == 1:
-                    pygame.draw.rect(self.surface, BOARD_COLOR, (tile_x, tile_y, t_size, t_size), line_size)
-                elif self.level[i][j] == 3:
-                    pygame.draw.line(self.surface, BOARD_COLOR, (tile_x, tile_y), (tile_x, tile_y + t_size), line_size)
-                elif self.level[i][j] == 4:
-                    pygame.draw.line(self.surface, BOARD_COLOR, (tile_x, tile_y), (tile_x + t_size, tile_y), line_size)
-                elif self.level[i][j] == 5:
-                    pygame.draw.line(self.surface, BOARD_COLOR, (tile_x + t_size - line_size, tile_y),
-                                     (tile_x + t_size - line_size, tile_y + t_size), line_size)
-                elif self.level[i][j] == 6:
-                    pygame.draw.line(self.surface, BOARD_COLOR, (tile_x, tile_y + t_size - line_size),
-                                     (tile_x + t_size, tile_y + t_size - line_size), line_size)
+                if self.grid[i][j] == 1: # Blocks
+                    pygame.draw.rect(self.surface, BOARD_COLOR, (tile_x, tile_y, t_size, t_size)) # Inside
+                    pygame.draw.rect(self.surface, BORDER_COLOR, (tile_x, tile_y, t_size, t_size), line_size)  # Border
+
 
     def draw(self, screen):
         screen.blit(self.surface, (0, 0))
 
-    def check_position(self, center, player_size):
-        new_move_allowed = [False, False, False, False]
-        grid_x, grid_y = center[0] - self.offset_x, center[1] - self.offset_y
+    def check_position(self, player_rect):
+        # Player position block
+        start_col = int((player_rect.x - self.offset_x) // self.tile_size)
+        start_row = int((player_rect.y - self.offset_y) // self.tile_size)
 
-        # Hitbox
-        fudge = player_size / 2
-
-        for i, (dx, dy) in enumerate([(-fudge, 0), (fudge, 0), (0, -fudge), (0, fudge)]):
-            row = int((grid_y + dy) // self.tile_size)
-            col = int((grid_x + dx) // self.tile_size)
-            if 0 <= row < len(self.level) - 1 and 0 <= col < len(self.level[0]) - 1 and row > 0 and col > 0 and \
-                    self.level[row][col] != 1:
-                new_move_allowed[i] = True
-        return new_move_allowed
+        # Check blocks near the player
+        for row in range(start_row - 1, start_row + 2):
+            for col in range(start_col - 1, start_col + 2):
+                if 0 <= row < len(self.grid) and 0 <= col < len(self.grid[0]):
+                    if self.grid[row][col] == 1:
+                        tile_rect = pygame.Rect(
+                            col * self.tile_size + self.offset_x,
+                            row * self.tile_size + self.offset_y,
+                            self.tile_size,
+                            self.tile_size
+                        )
+                        # Collision with block
+                        if player_rect.colliderect(tile_rect):
+                            return False
+        return True

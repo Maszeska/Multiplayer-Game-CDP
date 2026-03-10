@@ -64,10 +64,7 @@ while running:
             if int(player.hatch_frame_index) >= len(player.hatch_frames):
                 game_state = "playing"
         elif game_state == "playing":
-            player_center = (player.x + player.size / 2, player.y + player.size / 2)
-            move_allowed = game_board.check_position(player_center, player.size)
-            is_moving = player.move(move_allowed)
-
+            is_moving = player.move(game_board)
         player.draw(screen, game_state, is_moving)
 
     pygame.display.flip()

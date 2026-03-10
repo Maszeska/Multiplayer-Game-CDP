@@ -31,33 +31,30 @@ class Player:
             frames.append(frame)
         return frames
 
-    def move(self, move_allowed):
+    def move(self, board):
         keys = pygame.key.get_pressed()
         is_moving = False
 
+
         if keys[pygame.K_a]:
-            self.direction = 0
             self.facing_left = True
-            if move_allowed[0]:
+            if board.check_position(self.get_hitbox(self.x - PLAYER_SPEED, self.y)):
                 self.x -= PLAYER_SPEED
                 is_moving = True
 
         if keys[pygame.K_d]:
-            self.direction = 1
             self.facing_left = False
-            if move_allowed[1]:
+            if board.check_position(self.get_hitbox(self.x + PLAYER_SPEED, self.y)):
                 self.x += PLAYER_SPEED
                 is_moving = True
 
         if keys[pygame.K_w]:
-            self.direction = 2
-            if move_allowed[2]:
+            if board.check_position(self.get_hitbox(self.x, self.y - PLAYER_SPEED)):
                 self.y -= PLAYER_SPEED
                 is_moving = True
 
         if keys[pygame.K_s]:
-            self.direction = 3
-            if move_allowed[3]:
+            if board.check_position(self.get_hitbox(self.x, self.y + PLAYER_SPEED)):
                 self.y += PLAYER_SPEED
                 is_moving = True
 
@@ -83,3 +80,12 @@ class Player:
         # Flipping sprite when turning left
         flip_x = self.facing_left
         screen.blit(pygame.transform.flip(img, flip_x, False), (self.x, self.y))
+
+    def get_hitbox(self, x, y):
+
+        player_rect_left = x + HITBOX_BUFFER_SIDE
+        player_rect_width = self.size - (2 * HITBOX_BUFFER_SIDE)
+        player_rect_top = y + HITBOX_BUFFER_TOP
+        player_rect_height = self.size - HITBOX_BUFFER_TOP - HITBOX_BUFFER_BOTTOM
+
+        return pygame.Rect(player_rect_left, player_rect_top, player_rect_width, player_rect_height)
