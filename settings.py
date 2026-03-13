@@ -17,6 +17,7 @@ PLAYER_FRAME_H = 24
 HITBOX_BUFFER_SIDE = 7.5
 HITBOX_BUFFER_TOP = 7.5
 HITBOX_BUFFER_BOTTOM = 3.75
+PLAYER_HP = 3
 
 # --- Bomb ---
 BOMB_FRAME_W = 64
@@ -53,6 +54,7 @@ BOOM_SOUND_PATH = "sounds/boom.wav"
 # Graphics
 PLAYER_IDLE_PATH = "assets/player_images/player_0/player_0_idle.png"
 PLAYER_MOVE_PATH = "assets/player_images/player_0/player_0_move.png"
+PLAYER_DEATH_PATH = "assets/player_images/player_0/player_0_dead.png"
 PLAYER_HATCH_PATH = "assets/player_images/player_0/player_0_hatch.png"
 EGG_SHAKE_PATH = "assets/player_images/player_0/player_0_egg_move.png"
 BOMB_IDLE_PATH = "assets/bombs/bomb_character_o_idle.png"

@@ -80,12 +80,23 @@ while running:
     else:
         game_board.draw(screen)
 
+        if game_state == "playing":
+            player.update_timers()
+
         for bomb in active_bombs:
             bomb.update(game_board)
             bomb.draw(screen, game_board)
 
-        active_bombs = [bomb for bomb in active_bombs if bomb.state != "done"]
+            if bomb.state == "exploding":
+                player_pos = player.get_grid_pos(game_board)
 
+                # Jeśli koordynaty (wiersz, kolumna) gracza są na liście wybuchu:
+                if player_pos in bomb.blast_tiles:
+                    player.take_damage()
+
+        active_bombs = [bomb for bomb in active_bombs if bomb.state != "done"]
+        if game_state == "playing" and player.lives <= 0:
+            game_state = "dying"
         if game_state == "shaking":
             if player.shake_timer >= SHAKE_DURATION:
                 game_state = "hatching"
@@ -94,6 +105,13 @@ while running:
                 game_state = "playing"
         elif game_state == "playing":
             is_moving = player.move(game_board)
+        elif game_state == "dying":
+            is_moving = False
+            if int(player.death_frame_index) >= len(player.death_frames) - 1:
+                game_state = "game_over"
+
+            elif game_state == "game_over":
+                is_moving = False
         player.draw(screen, game_state, is_moving)
 
     pygame.display.flip()

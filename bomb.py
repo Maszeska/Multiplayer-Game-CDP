@@ -76,6 +76,7 @@ class Bomb(GameObject):
                 self.state = "done"
 
     def draw(self, screen, board):
+
         if self.state == "done":
             return
 
