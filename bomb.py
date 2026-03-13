@@ -19,15 +19,6 @@ class Bomb(GameObject):
             Bomb.shared_explosion_frames = self.load_animation(BOMB_EXPLOSION_PATH, 3, BOMB_FRAME_W, BOMB_FRAME_H)
             Bomb.animations_loaded = True
 
-        self.idle_frames = Bomb.shared_idle_frames
-        self.explosion_frames = Bomb.shared_explosion_frames
-        self.explosion_surface = None
-
-        self.state = "ticking"
-        self.timer = EXPLOSION_DURATION * FPS
-
-        self.blast_tiles = []
-
         if not Bomb.sound_loaded:
             try:
                 Bomb.explosion_sound = pygame.mixer.Sound(BOOM_SOUND_PATH)
@@ -35,6 +26,13 @@ class Bomb(GameObject):
             except pygame.error:
                 print("Nie udało się załadować pliku .wav z wybuchem.")
                 Bomb.sound_loaded = True
+
+        self.idle_frames = Bomb.shared_idle_frames
+        self.explosion_frames = Bomb.shared_explosion_frames
+        self.explosion_surface = None
+        self.state = "ticking"
+        self.timer = EXPLOSION_DURATION * FPS
+        self.blast_tiles = []
 
     def calculate_blast_tiles(self, board):
         self.blast_tiles = []

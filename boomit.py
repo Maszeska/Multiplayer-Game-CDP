@@ -2,6 +2,7 @@ from board import Board
 from settings import *
 from player import Player
 from menu import MainMenu
+from options_menu import OptionsMenu
 
 pygame.init()
 pygame.mixer.init()
@@ -34,6 +35,7 @@ start_y = game_board.offset_y + game_board.tile_size
 player = Player(start_x, start_y, game_board.tile_size)
 
 main_menu = MainMenu()
+options_menu = OptionsMenu()
 
 game_state = "menu"
 
@@ -51,11 +53,20 @@ while running:
         if event.type == pygame.QUIT:
             running = False
 
+        if game_state == "menu":
+            clicked_button = main_menu.handle_event(event)
+
+            if clicked_button == "PLAY":
+                game_state = "shaking"
+            elif clicked_button == "OPTIONS":
+                game_state = "options"
+        elif game_state == "options":
+            clicked_button = options_menu.handle_event(event)
+            if clicked_button == "BACK":
+                game_state = "menu"
+
         if event.type == pygame.KEYDOWN:
-            if game_state == "menu":
-                if event.key == pygame.K_RETURN:
-                    game_state = "shaking"
-            elif game_state == "playing":
+            if game_state == "playing":
                 if event.key == pygame.K_SPACE and len(active_bombs) < 2:
                     new_bomb = player.drop_bomb(game_board)
                     active_bombs.append(new_bomb)
@@ -63,6 +74,8 @@ while running:
     if game_state == "menu":
         main_menu.draw(screen)
 
+    elif game_state == "options":
+        options_menu.draw(screen)
 
     else:
         game_board.draw(screen)
