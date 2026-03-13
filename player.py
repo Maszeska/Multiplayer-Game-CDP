@@ -14,11 +14,16 @@ class Player(GameObject):
         self.walk_frames = self.load_animation(PLAYER_MOVE_PATH, 6, PLAYER_FRAME_W, PLAYER_FRAME_H)
         self.hatch_frames = self.load_animation(PLAYER_HATCH_PATH, 3, PLAYER_FRAME_W, PLAYER_FRAME_H)
         self.shake_frames = self.load_animation(EGG_SHAKE_PATH, 4, PLAYER_FRAME_W, PLAYER_FRAME_H)
+        self.death_frames = self.load_animation(PLAYER_DEATH_PATH, 5, PLAYER_FRAME_W, PLAYER_FRAME_H)
 
         # Counters for frames
         self.shake_timer = 0
         self.hatch_frame_index = 0
         self.shake_frame_index = 0
+        self.death_frame_index = 0
+
+        self.lives = PLAYER_HP
+        self.invulnerable_timer = 0
 
     def move(self, board):
         keys = pygame.key.get_pressed()
@@ -49,7 +54,30 @@ class Player(GameObject):
 
         return is_moving
 
+    def get_grid_pos(self, board):
+        center_x = self.x + (self.size / 2)
+        center_y = self.y + (self.size / 2)
+
+        col = int((center_x - board.offset_x) // board.tile_size)
+        row = int((center_y - board.offset_y) // board.tile_size)
+
+        return row, col
+
+    def take_damage(self):
+        if self.invulnerable_timer <= 0:
+            self.lives -= 1
+            print(f"Ouch! Zostało żyć: {self.lives}")
+            self.invulnerable_timer = FPS * 2
+
+    def update_timers(self):
+        if self.invulnerable_timer > 0:
+            self.invulnerable_timer -= 1
+
     def draw(self, screen, game_state, is_moving):
+        if game_state == "game_over":
+            return
+        if self.invulnerable_timer > 0 and self.invulnerable_timer % 10 < 5 and game_state == "playing":
+            return
         # Choosing animation based on game state
         if game_state == "shaking":
             self.shake_frame_index += SHAKE_ANIM_SPEED
@@ -60,6 +88,12 @@ class Player(GameObject):
             self.hatch_frame_index += HATCH_SPEED
             idx = min(int(self.hatch_frame_index), len(self.hatch_frames) - 1)
             img = self.hatch_frames[idx]
+
+        elif game_state == "dying" or game_state == "game_over":
+            if game_state == "dying":
+                self.death_frame_index += ANIMATION_SPEED  # lub inna prędkość, np. 0.1
+            idx = min(int(self.death_frame_index), len(self.death_frames) - 1)
+            img = self.death_frames[idx]
 
         else:  # "playing"
             self.current_frame += ANIMATION_SPEED
