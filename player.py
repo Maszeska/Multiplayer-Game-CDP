@@ -1,35 +1,24 @@
 from settings import *
+from game_object import GameObject
+from bomb import Bomb
 
 
-class Player:
+class Player(GameObject):
     def __init__(self, x, y, size):
-        self.x = x
-        self.y = y
-        self.size = size
+        super().__init__(x, y, size)
         self.direction = 0  # 0: Left, 1: Right, 2: Up, 3: Down
         self.facing_left = False
 
         # Animations
-        self.idle_frames = self.load_animation(PLAYER_IDLE_PATH, 3)
-        self.walk_frames = self.load_animation(PLAYER_MOVE_PATH, 6)
-        self.hatch_frames = self.load_animation(PLAYER_HATCH_PATH, 3)
-        self.shake_frames = self.load_animation(EGG_SHAKE_PATH, 4)
+        self.idle_frames = self.load_animation(PLAYER_IDLE_PATH, 3, PLAYER_FRAME_W, PLAYER_FRAME_H)
+        self.walk_frames = self.load_animation(PLAYER_MOVE_PATH, 6, PLAYER_FRAME_W, PLAYER_FRAME_H)
+        self.hatch_frames = self.load_animation(PLAYER_HATCH_PATH, 3, PLAYER_FRAME_W, PLAYER_FRAME_H)
+        self.shake_frames = self.load_animation(EGG_SHAKE_PATH, 4, PLAYER_FRAME_W, PLAYER_FRAME_H)
 
-        # Counters fir frames
-        self.current_frame = 0
+        # Counters for frames
         self.shake_timer = 0
         self.hatch_frame_index = 0
         self.shake_frame_index = 0
-
-    def load_animation(self, path, num_frames):
-        sheet = pygame.image.load(path).convert_alpha()
-        frames = []
-        for i in range(num_frames):
-            frame = pygame.Surface((FRAME_W, FRAME_H), pygame.SRCALPHA)
-            frame.blit(sheet, (0, 0), (i * FRAME_W, 0, FRAME_W, FRAME_H))
-            frame = pygame.transform.scale(frame, (int(self.size), int(self.size)))
-            frames.append(frame)
-        return frames
 
     def move(self, board):
         keys = pygame.key.get_pressed()
@@ -89,3 +78,18 @@ class Player:
         player_rect_height = self.size - HITBOX_BUFFER_TOP - HITBOX_BUFFER_BOTTOM
 
         return pygame.Rect(player_rect_left, player_rect_top, player_rect_width, player_rect_height)
+
+    def drop_bomb(self, board):
+        center_x = self.x + (self.size / 2)
+        center_y = self.y + (self.size / 2)
+
+        # how does it work: we get the x/y position of player
+        # after subtracting from it the offset and dividing by
+        # the tile size, we get the concrete column/row
+        col = int((center_x - board.offset_x) // board.tile_size)
+        row = int((center_y - board.offset_y) // board.tile_size)
+
+        bomb_x = (col * board.tile_size) + board.offset_x
+        bomb_y = (row * board.tile_size) + board.offset_y
+
+        return Bomb(bomb_x, bomb_y, board.tile_size)
