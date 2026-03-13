@@ -198,7 +198,32 @@ def main():
     net = NetworkPeer(mode, host, port)
     net.start()
 
-    game_state = "menu"
+    # New waiting screen
+    waiting = True
+    font = pygame.font.SysFont(MENU_FONT_PATH, 50, bold=True)
+    while waiting:
+        screen.fill("black")
+
+        if net.connected:
+            text = "Connected! Press ENTER to start game"
+        else:
+            text = "Waiting for connection..."
+
+        surf = font.render(text, True, "white")
+        screen.blit(surf, (WIDTH // 2 - surf.get_width() // 2, HEIGHT // 2))
+        pygame.display.flip()
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                net.stop()
+                pygame.quit()
+                return
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN and net.connected:
+                waiting = False
+
+        timer.tick(FPS)  # Prevent high CPU usage
+
+    game_state = "shaking"  # Skip menu, go directly to game
     active_bombs = []
     remote_bombs = []
 
