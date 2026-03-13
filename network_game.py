@@ -49,7 +49,7 @@ class NetworkPeer:
     def _start_server(self):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.sock.bind((self.host, self.port))
+        self.sock.bind(("0.0.0.0", self.port))  # Listen on all interfaces (VPN/LAN)
         self.sock.listen(1)
 
         print(f"[net] server listening on {self.host}:{self.port}")
@@ -140,7 +140,8 @@ def connection_screen(screen, font):
                     if event.unicode.isdigit() and pygame.key.get_mods() & pygame.KMOD_SHIFT:
                         # if shift pressed treat input as port
                         port_text += event.unicode
-                    elif event.unicode.isdigit() and not pygame.key.get_mods() & pygame.KMOD_SHIFT:
+                    elif event.unicode in "0123456789." and not pygame.key.get_mods() & pygame.KMOD_SHIFT:
+                        # allow typing IP with dots
                         input_text += event.unicode
                     elif event.unicode.isalpha() and not pygame.key.get_mods() & pygame.KMOD_SHIFT:
                         input_text += event.unicode
