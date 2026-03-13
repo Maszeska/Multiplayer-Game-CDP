@@ -47,7 +47,7 @@ BOARD = [
 
 # --- Paths to assets ---
 # sounds
-MUSIC_PATH = "sounds/stateside_zara_larsson_sound.ogg"
+MUSIC_PATH = ""
 BOOM_SOUND_PATH = "sounds/boom.wav"
 
 # Graphics
