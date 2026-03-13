@@ -22,6 +22,7 @@ HITBOX_BUFFER_BOTTOM = 3.75
 BOMB_FRAME_W = 64
 BOMB_FRAME_H = 64
 EXPLOSION_DURATION = 1
+BOMB_RANGE = 2
 
 # --- Boards ---
 BOARD = [
@@ -45,8 +46,9 @@ BOARD = [
 ]
 
 # --- Paths to assets ---
-# Music
-MUSIC_PATH = "sounds/stateside_zara_larsson_sound.mp3"
+# sounds
+MUSIC_PATH = "sounds/stateside_zara_larsson_sound.ogg"
+BOOM_SOUND_PATH = "sounds/boom.wav"
 
 # Graphics
 PLAYER_IDLE_PATH = "assets/player_images/player_0/player_0_idle.png"

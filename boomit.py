@@ -7,6 +7,7 @@ pygame.init()
 pygame.mixer.init()
 
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
+board = BOARD
 pygame.display.set_caption("Boomit!")
 
 try:
@@ -20,7 +21,7 @@ timer = pygame.time.Clock()
 
 # background music
 try:
-    pygame.mixer.music.load("sounds/stateside_zara_larsson_sound.mp3")
+    pygame.mixer.music.load(MUSIC_PATH)
     pygame.mixer.music.play(-1)
 except pygame.error:
     print("Nie znaleziono pliku muzycznego, gra uruchomi się bez dźwięku.")
@@ -54,7 +55,6 @@ while running:
             if game_state == "menu":
                 if event.key == pygame.K_RETURN:
                     game_state = "shaking"
-
             elif game_state == "playing":
                 if event.key == pygame.K_SPACE and len(active_bombs) < 2:
                     new_bomb = player.drop_bomb(game_board)
@@ -68,8 +68,8 @@ while running:
         game_board.draw(screen)
 
         for bomb in active_bombs:
-            bomb.update()
-            bomb.draw(screen)
+            bomb.update(game_board)
+            bomb.draw(screen, game_board)
 
         active_bombs = [bomb for bomb in active_bombs if bomb.state != "done"]
 
