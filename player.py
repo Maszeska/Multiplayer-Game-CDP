@@ -25,29 +25,34 @@ class Player(GameObject):
         self.lives = PLAYER_HP
         self.invulnerable_timer = 0
 
-    def move(self, board):
+    def move(self, board, use_arrows=False):
         keys = pygame.key.get_pressed()
         is_moving = False
 
+        # Determine key mapping based on role (server/client)
+        left_key = pygame.K_LEFT if use_arrows else pygame.K_a
+        right_key = pygame.K_RIGHT if use_arrows else pygame.K_d
+        up_key = pygame.K_UP if use_arrows else pygame.K_w
+        down_key = pygame.K_DOWN if use_arrows else pygame.K_s
 
-        if keys[pygame.K_a]:
+        if keys[left_key]:
             self.facing_left = True
             if board.check_position(self.get_hitbox(self.x - PLAYER_SPEED, self.y)):
                 self.x -= PLAYER_SPEED
                 is_moving = True
 
-        if keys[pygame.K_d]:
+        if keys[right_key]:
             self.facing_left = False
             if board.check_position(self.get_hitbox(self.x + PLAYER_SPEED, self.y)):
                 self.x += PLAYER_SPEED
                 is_moving = True
 
-        if keys[pygame.K_w]:
+        if keys[up_key]:
             if board.check_position(self.get_hitbox(self.x, self.y - PLAYER_SPEED)):
                 self.y -= PLAYER_SPEED
                 is_moving = True
 
-        if keys[pygame.K_s]:
+        if keys[down_key]:
             if board.check_position(self.get_hitbox(self.x, self.y + PLAYER_SPEED)):
                 self.y += PLAYER_SPEED
                 is_moving = True
