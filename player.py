@@ -20,29 +20,39 @@ class Player(GameObject):
         self.hatch_frame_index = 0
         self.shake_frame_index = 0
 
-    def move(self, board):
+    def move(self, board, use_arrows=False):
         keys = pygame.key.get_pressed()
         is_moving = False
 
+        if use_arrows:
+            left_key = pygame.K_LEFT
+            right_key = pygame.K_RIGHT
+            up_key = pygame.K_UP
+            down_key = pygame.K_DOWN
+        else:
+            left_key = pygame.K_a
+            right_key = pygame.K_d
+            up_key = pygame.K_w
+            down_key = pygame.K_s
 
-        if keys[pygame.K_a]:
+        if keys[left_key]:
             self.facing_left = True
             if board.check_position(self.get_hitbox(self.x - PLAYER_SPEED, self.y)):
                 self.x -= PLAYER_SPEED
                 is_moving = True
 
-        if keys[pygame.K_d]:
+        if keys[right_key]:
             self.facing_left = False
             if board.check_position(self.get_hitbox(self.x + PLAYER_SPEED, self.y)):
                 self.x += PLAYER_SPEED
                 is_moving = True
 
-        if keys[pygame.K_w]:
+        if keys[up_key]:
             if board.check_position(self.get_hitbox(self.x, self.y - PLAYER_SPEED)):
                 self.y -= PLAYER_SPEED
                 is_moving = True
 
-        if keys[pygame.K_s]:
+        if keys[down_key]:
             if board.check_position(self.get_hitbox(self.x, self.y + PLAYER_SPEED)):
                 self.y += PLAYER_SPEED
                 is_moving = True

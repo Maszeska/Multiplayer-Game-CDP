@@ -254,20 +254,12 @@ def main():
                         active_bombs.append(new_bomb)
                         net.send({"type": "bomb", "x": new_bomb.x, "y": new_bomb.y})
 
-        keys = pygame.key.get_pressed()
         if game_state == "playing":
-            if mode == "server":
-                dx = (keys[pygame.K_d] - keys[pygame.K_a]) * PLAYER_SPEED
-                dy = (keys[pygame.K_s] - keys[pygame.K_w]) * PLAYER_SPEED
-            else:
-                dx = (keys[pygame.K_RIGHT] - keys[pygame.K_LEFT]) * PLAYER_SPEED
-                dy = (keys[pygame.K_DOWN] - keys[pygame.K_UP]) * PLAYER_SPEED
+            # Server uses WASD, client uses arrows
+            use_arrows = (mode == "client")
+            is_moving = player.move(game_board, use_arrows=use_arrows)
 
-            if dx != 0 or dy != 0:
-                player.x += dx
-                player.y += dy
-                is_moving = True
-
+            # Always send local position updates to the peer (even if not moving)
             net.send({"type": "state", "x": player.x, "y": player.y})
 
         if game_state == "menu":
