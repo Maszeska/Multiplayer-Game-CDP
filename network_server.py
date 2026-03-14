@@ -1,56 +1,49 @@
 import pickle
 import socket
-import threading
 import time
 
-server = "192.168.68.59"
+server = "100.83.138.125"
 port = 5555
 
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
 try:
     s.bind((server, port))
 except socket.error as e:
     print(e)
 
-s.listen(4)
-print("Server started. Waiting for connections...")
+print("UDP Server started. Waiting for connections...")
 
 player_count = 0
 players = [None, None, None, None]
-
-def threaded_client(conn, player_id):
-    global players
-    conn.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
-
-    conn.send(str.encode(str(player_id)))
-
-    while True:
-        try:
-            raw_data = conn.recv(4096)
-            if not raw_data:
-                break
-
-            data = pickle.loads(raw_data)
-            players[player_id] = data
-            conn.sendall(pickle.dumps(players))
-
-        except Exception as e:
-            print(f"Błąd gracza {player_id}: {e}")
-            break
-
-    print(f"Gracz {player_id} rozłączony.")
-    players[player_id] = None
-    conn.close()
+player_addrs = {}  # Map player_id to client address
 
 while True:
-    conn, addr = s.accept()
-    print("New player connected:", addr)
-    if player_count < 4:
-        threading.Thread(target=threaded_client, args=(conn, player_count)).start()
-        player_count += 1
-    else:
-        print("Server is full. Connection denied for:", addr)
-        conn.send(str.encode("Server is full!"))
-        conn.close()
+    try:
+        raw_data, addr = s.recvfrom(4096)
+        data = pickle.loads(raw_data)
+
+        if data == "join":
+            if player_count < 4:
+                player_id = player_count
+                player_count += 1
+                player_addrs[player_id] = addr
+                s.sendto(pickle.dumps(player_id), addr)
+                print(f"Player {player_id} joined from {addr}")
+            else:
+                s.sendto(pickle.dumps("Server is full!"), addr)
+                print(f"Server full. Denied connection from {addr}")
+        else:
+            player_id, player_data = data
+            if player_id in player_addrs and addr == player_addrs[player_id]:
+                players[player_id] = player_data
+                # Send updated players list to all connected clients
+                for client_addr in player_addrs.values():
+                    s.sendto(pickle.dumps(players), client_addr)
+            else:
+                print(f"Invalid data from {addr}, player_id {player_id}")
+
+    except Exception as e:
+        print(f"Server error: {e}")
+
     time.sleep(0.001)
