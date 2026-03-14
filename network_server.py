@@ -3,7 +3,7 @@ import socket
 import threading
 import time
 
-server = "0.0.0.0"
+server = "192.168.68.59"
 port = 5555
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -14,31 +14,33 @@ except socket.error as e:
     print(e)
 
 s.listen(4)
-print("Serwer started. Waiting for connections...")
+print("Server started. Waiting for connections...")
 
 player_count = 0
 players = [None, None, None, None]
 
 def threaded_client(conn, player_id):
     global players
+    conn.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
 
     conn.send(str.encode(str(player_id)))
 
     while True:
         try:
-            data = pickle.loads(conn.recv(2048))
-
-            if not data:
-                print(f"Player {player_id} disconnected.")
+            raw_data = conn.recv(4096)
+            if not raw_data:
                 break
 
+            data = pickle.loads(raw_data)
             players[player_id] = data
             conn.sendall(pickle.dumps(players))
 
-        except socket.error:
-            print(f"Lost connection with Player {player_id}")
+        except Exception as e:
+            print(f"Błąd gracza {player_id}: {e}")
             break
 
+    print(f"Gracz {player_id} rozłączony.")
+    players[player_id] = None
     conn.close()
 
 while True:

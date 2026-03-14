@@ -66,9 +66,7 @@ class BoomIt:
         self.is_moving = False
 
         # Bomb synchronisation
-        self.bombs_dropped = 0
-        self.last_bomb_pos = (0, 0)
-        self.enemies_bomb_count = {0: 0, 1: 0, 2: 0, 3: 0}
+        self.pending_bomb = None
 
     def handle_events(self):
         for event in pygame.event.get():
@@ -99,8 +97,7 @@ class BoomIt:
                             new_bomb.owner = self.player_id
                             self.active_bombs.append(new_bomb)
 
-                            self.bombs_dropped += 1
-                            self.last_bomb_pos = (new_bomb.x, new_bomb.y)
+                            self.pending_bomb = (new_bomb.x, new_bomb.y)
 
     def update(self):
         self.is_moving = False
@@ -147,24 +144,22 @@ class BoomIt:
                 'facing_left': self.player.facing_left,
                 'state': self.state,
                 'invulnerable_timer': self.player.invulnerable_timer,
-                'bombs_dropped': self.bombs_dropped,
-                'last_bomb_pos': self.last_bomb_pos
+                'bomb_event': self.pending_bomb
             }
             try:
                 self.all_players_data = self.network.send(my_data)
 
+                self.pending_bomb = None
+
                 if self.all_players_data:
                     for i, data in enumerate(self.all_players_data):
                         if i != self.player_id and data is not None:
-                            enemy_bomb_count = data.get('bombs_dropped', 0)
 
-                            if enemy_bomb_count > self.enemies_bomb_count.get(i, 0):
-                                self.enemies_bomb_count[i] = enemy_bomb_count
-
-                                bx, by = data.get('last_bomb_pos', (0, 0))
+                            bomb_pos = data.get('bomb_event')
+                            if bomb_pos:
+                                bx, by = bomb_pos
                                 enemy_bomb = Bomb(bx, by, self.board.tile_size)
                                 enemy_bomb.owner = i
-
                                 self.active_bombs.append(enemy_bomb)
             except Exception as e:
                 print("Błąd synchronizacji:", e)

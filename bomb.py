@@ -22,6 +22,7 @@ class Bomb(GameObject):
         if not Bomb.sound_loaded:
             try:
                 Bomb.explosion_sound = pygame.mixer.Sound(BOOM_SOUND_PATH)
+                Bomb.explosion_sound.set_volume(0.4)
                 Bomb.sound_loaded = True
             except pygame.error:
                 print("Nie udało się załadować pliku .wav z wybuchem.")
