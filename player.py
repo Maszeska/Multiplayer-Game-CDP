@@ -4,17 +4,24 @@ from bomb import Bomb
 
 
 class Player(GameObject):
-    def __init__(self, x, y, size):
+    def __init__(self, x, y, size, player_id):
         super().__init__(x, y, size)
+        self.id = player_id
         self.direction = 0  # 0: Left, 1: Right, 2: Up, 3: Down
         self.facing_left = False
 
+        player_idle= f"assets/player_images/player_{self.id}/player_{self.id}_idle.png"
+        player_move = f"assets/player_images/player_{self.id}/player_{self.id}_move.png"
+        player_death = f"assets/player_images/player_{self.id}/player_{self.id}_dead.png"
+        player_hatch = f"assets/player_images/player_{self.id}/player_{self.id}_hatch.png"
+        egg_shake = f"assets/player_images/player_{self.id}/player_{self.id}_egg_move.png"
+
         # Animations
-        self.idle_frames = self.load_animation(PLAYER_IDLE_PATH, 3, PLAYER_FRAME_W, PLAYER_FRAME_H)
-        self.walk_frames = self.load_animation(PLAYER_MOVE_PATH, 6, PLAYER_FRAME_W, PLAYER_FRAME_H)
-        self.hatch_frames = self.load_animation(PLAYER_HATCH_PATH, 3, PLAYER_FRAME_W, PLAYER_FRAME_H)
-        self.shake_frames = self.load_animation(EGG_SHAKE_PATH, 4, PLAYER_FRAME_W, PLAYER_FRAME_H)
-        self.death_frames = self.load_animation(PLAYER_DEATH_PATH, 5, PLAYER_FRAME_W, PLAYER_FRAME_H)
+        self.idle_frames = self.load_animation(player_idle, 3, PLAYER_FRAME_W, PLAYER_FRAME_H)
+        self.walk_frames = self.load_animation(player_move, 6, PLAYER_FRAME_W, PLAYER_FRAME_H)
+        self.hatch_frames = self.load_animation(player_hatch, 3, PLAYER_FRAME_W, PLAYER_FRAME_H)
+        self.shake_frames = self.load_animation(egg_shake, 4, PLAYER_FRAME_W, PLAYER_FRAME_H)
+        self.death_frames = self.load_animation(player_death, 5, PLAYER_FRAME_W, PLAYER_FRAME_H)
 
         # Counters for frames
         self.shake_timer = 0
