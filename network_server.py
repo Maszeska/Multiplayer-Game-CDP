@@ -1,6 +1,7 @@
 import pickle
 import socket
 import threading
+import time
 
 server = "0.0.0.0"
 port = 5555
@@ -50,3 +51,4 @@ while True:
         print("Server is full. Connection denied for:", addr)
         conn.send(str.encode("Server is full!"))
         conn.close()
+    time.sleep(0.001)
