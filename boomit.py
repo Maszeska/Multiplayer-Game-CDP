@@ -1,119 +1,213 @@
+import sys
 from board import Board
 from settings import *
 from player import Player
 from menu import MainMenu
 from options_menu import OptionsMenu
+from network import Network
+from bomb import Bomb
 
-pygame.init()
-pygame.mixer.init()
+def load_assets():
+    try:
+        game_icon = pygame.image.load(ICON_PATH).convert_alpha()
+        pygame.display.set_icon(game_icon)
+    except pygame.error:
+        print("Nie udało się załadować ikonki okna.")
 
-screen = pygame.display.set_mode((WIDTH, HEIGHT))
-board = BOARD
-pygame.display.set_caption("Boomit!")
-
-try:
-    game_icon = pygame.image.load(ICON_PATH).convert_alpha()
-    pygame.display.set_icon(game_icon)
-except pygame.error:
-    print("Nie udało się załadować ikonki okna.")
-
-timer = pygame.time.Clock()
-
-
-# background music
-try:
-    pygame.mixer.music.load(MUSIC_PATH)
-    pygame.mixer.music.play(-1)
-except pygame.error:
-    print("Nie znaleziono pliku muzycznego, gra uruchomi się bez dźwięku.")
-
-# board logic
-game_board = Board(BOARD)
-
-start_x = game_board.offset_x + game_board.tile_size
-start_y = game_board.offset_y + game_board.tile_size
-player = Player(start_x, start_y, game_board.tile_size)
-
-main_menu = MainMenu()
-options_menu = OptionsMenu()
-
-game_state = "menu"
+    try:
+        pygame.mixer.music.load(MUSIC_PATH)
+        pygame.mixer.music.play(-1)
+    except pygame.error:
+        print("Nie znaleziono pliku muzycznego, gra uruchomi się bez dźwięku.")
 
 
-active_bombs = []
+class BoomIt:
+    def __init__(self):
+        pygame.init()
+        pygame.mixer.init()
 
-# game loop
 
-running = True
-while running:
-    timer.tick(FPS)
-    is_moving = False
+        self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
+        pygame.display.set_caption("Boomit!")
+        self.timer = pygame.time.Clock()
 
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
+        load_assets()
 
-        if game_state == "menu":
-            clicked_button = main_menu.handle_event(event)
+        self.board = Board(BOARD)
 
-            if clicked_button == "PLAY":
-                game_state = "shaking"
-            elif clicked_button == "OPTIONS":
-                game_state = "options"
-        elif game_state == "options":
-            clicked_button = options_menu.handle_event(event)
-            if clicked_button == "BACK":
-                game_state = "menu"
+        print("Łączenie z serwerem...")
+        self.network = Network()
 
-        if event.type == pygame.KEYDOWN:
-            if game_state == "playing":
-                if event.key == pygame.K_SPACE and len(active_bombs) < 2:
-                    new_bomb = player.drop_bomb(game_board)
-                    active_bombs.append(new_bomb)
+        self.player_id = int(self.network.start_pos)
+        print(f"Jestem graczem numer: {self.player_id}")
 
-    if game_state == "menu":
-        main_menu.draw(screen)
+        rows = len(self.board.grid)
+        cols = len(self.board.grid[0])
 
-    elif game_state == "options":
-        options_menu.draw(screen)
+        if self.player_id == 0:
+            grid_x, grid_y = 1, 1
+        elif self.player_id == 1:
+            grid_x, grid_y = cols - 2, rows - 2
+        elif self.player_id == 2:
+            grid_x, grid_y = cols - 2, 1
+        else:
+            grid_x, grid_y = 1, rows - 2
 
-    else:
-        game_board.draw(screen)
+        start_x = self.board.offset_x + (grid_x * self.board.tile_size)
+        start_y = self.board.offset_y + (grid_y * self.board.tile_size)
 
-        if game_state == "playing":
-            player.update_timers()
+        self.player = Player(start_x, start_y, self.board.tile_size, self.player_id)
+        self.enemies = {}
+        self.main_menu = MainMenu()
+        self.options_menu = OptionsMenu()
 
-        for bomb in active_bombs:
-            bomb.update(game_board)
-            bomb.draw(screen, game_board)
+        self.state = "menu"
+        self.active_bombs = []
+        self.is_moving = False
 
-            if bomb.state == "exploding":
-                player_pos = player.get_grid_pos(game_board)
+        # Bomb synchronisation
+        self.bombs_dropped = 0
+        self.last_bomb_pos = (0, 0)
+        self.enemies_bomb_count = {0: 0, 1: 0, 2: 0, 3: 0}
 
-                # Jeśli koordynaty (wiersz, kolumna) gracza są na liście wybuchu:
-                if player_pos in bomb.blast_tiles:
-                    player.take_damage()
+    def handle_events(self):
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
 
-        active_bombs = [bomb for bomb in active_bombs if bomb.state != "done"]
-        if game_state == "playing" and player.lives <= 0:
-            game_state = "dying"
-        if game_state == "shaking":
-            if player.shake_timer >= SHAKE_DURATION:
-                game_state = "hatching"
-        elif game_state == "hatching":
-            if int(player.hatch_frame_index) >= len(player.hatch_frames):
-                game_state = "playing"
-        elif game_state == "playing":
-            is_moving = player.move(game_board)
-        elif game_state == "dying":
-            is_moving = False
-            if int(player.death_frame_index) >= len(player.death_frames) - 1:
-                game_state = "game_over"
+            if self.state == "menu":
+                clicked_button = self.main_menu.handle_event(event)
+                if clicked_button == "PLAY":
+                    self.state = "shaking"
+                elif clicked_button == "OPTIONS":
+                    self.state = "options"
 
-            elif game_state == "game_over":
-                is_moving = False
-        player.draw(screen, game_state, is_moving)
+            elif self.state == "options":
+                clicked_button = self.options_menu.handle_event(event)
+                if clicked_button == "BACK":
+                    self.state = "menu"
 
-    pygame.display.flip()
+            elif event.type == pygame.KEYDOWN:
+                if self.state == "playing":
+                    if event.key == pygame.K_SPACE:
+                        my_bombs = [b for b in self.active_bombs if
+                                    getattr(b, 'owner', self.player_id) == self.player_id]
 
-pygame.quit()
+                        if len(my_bombs) < 2:
+                            new_bomb = self.player.drop_bomb(self.board)
+                            new_bomb.owner = self.player_id
+                            self.active_bombs.append(new_bomb)
+
+                            self.bombs_dropped += 1
+                            self.last_bomb_pos = (new_bomb.x, new_bomb.y)
+
+    def update(self):
+        self.is_moving = False
+
+        if self.state not in ("menu", "options"):
+
+            if self.state == "playing":
+                self.player.update_timers()
+
+            # Setting bombs for explosion
+            for bomb in self.active_bombs:
+                bomb.update(self.board)
+
+                if bomb.state == "exploding":
+                    player_pos = self.player.get_grid_pos(self.board)
+                    if player_pos in bomb.blast_tiles:
+                        self.player.take_damage()
+
+            # Deleting bombs which have exploded already
+            self.active_bombs = [bomb for bomb in self.active_bombs if bomb.state != "done"]
+
+            if self.state == "playing" and self.player.lives <= 0:
+                self.state = "dying"
+
+            if self.state == "shaking":
+                if self.player.shake_timer >= SHAKE_DURATION:
+                    self.state = "hatching"
+                else:
+                    self.player.shake_timer += 1
+            elif self.state == "hatching":
+                if int(self.player.hatch_frame_index) >= len(self.player.hatch_frames):
+                    self.state = "playing"
+            elif self.state == "playing":
+                self.is_moving = self.player.move(self.board)
+            elif self.state == "dying":
+                if int(self.player.death_frame_index) >= len(self.player.death_frames) - 1:
+                    self.state = "game_over"
+
+            # Handle multiplayer updates
+            my_data = {
+                'x': self.player.x,
+                'y': self.player.y,
+                'is_moving': self.is_moving,
+                'facing_left': self.player.facing_left,
+                'state': self.state,
+                'invulnerable_timer': self.player.invulnerable_timer,
+                'bombs_dropped': self.bombs_dropped,
+                'last_bomb_pos': self.last_bomb_pos
+            }
+            try:
+                self.all_players_data = self.network.send(my_data)
+
+                if self.all_players_data:
+                    for i, data in enumerate(self.all_players_data):
+                        if i != self.player_id and data is not None:
+                            enemy_bomb_count = data.get('bombs_dropped', 0)
+
+                            if enemy_bomb_count > self.enemies_bomb_count.get(i, 0):
+                                self.enemies_bomb_count[i] = enemy_bomb_count
+
+                                bx, by = data.get('last_bomb_pos', (0, 0))
+                                enemy_bomb = Bomb(bx, by, self.board.tile_size)
+                                enemy_bomb.owner = i
+
+                                self.active_bombs.append(enemy_bomb)
+            except Exception as e:
+                print("Błąd synchronizacji:", e)
+
+    def draw(self):
+        if self.state == "menu":
+            self.main_menu.draw(self.screen)
+        elif self.state == "options":
+            self.options_menu.draw(self.screen)
+        else:
+            self.board.draw(self.screen)
+
+            for bomb in self.active_bombs:
+                bomb.draw(self.screen, self.board)
+
+            if hasattr(self, 'all_players_data') and self.all_players_data:
+                for i, data in enumerate(self.all_players_data):
+                    if i != self.player_id and data is not None:
+
+                        if i not in self.enemies:
+                            self.enemies[i] = Player(data['x'], data['y'], self.board.tile_size, i)
+
+                        enemy = self.enemies[i]
+                        enemy.x = data['x']
+                        enemy.y = data['y']
+                        enemy.facing_left = data['facing_left']
+
+                        enemy.invulnerable_timer = data.get('invulnerable_timer', 0)
+
+                        enemy.draw(self.screen, data['state'], data['is_moving'])
+
+            self.player.draw(self.screen, self.state, self.is_moving)
+
+        pygame.display.flip()
+
+    def run(self):
+        while True:
+            self.handle_events()
+            self.update()
+            self.draw()
+            self.timer.tick(FPS)
+
+
+if __name__ == "__main__":
+    game = BoomIt()
+    game.run()

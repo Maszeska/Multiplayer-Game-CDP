@@ -48,15 +48,10 @@ BOARD = [
 
 # --- Paths to assets ---
 # sounds
-MUSIC_PATH = "sounds/stateside_zara_larsson_sound.ogg"
+MUSIC_PATH = ""
 BOOM_SOUND_PATH = "sounds/boom.wav"
 
 # Graphics
-PLAYER_IDLE_PATH = "assets/player_images/player_0/player_0_idle.png"
-PLAYER_MOVE_PATH = "assets/player_images/player_0/player_0_move.png"
-PLAYER_DEATH_PATH = "assets/player_images/player_0/player_0_dead.png"
-PLAYER_HATCH_PATH = "assets/player_images/player_0/player_0_hatch.png"
-EGG_SHAKE_PATH = "assets/player_images/player_0/player_0_egg_move.png"
 BOMB_IDLE_PATH = "assets/bombs/bomb_character_o_idle.png"
 BOMB_EXPLOSION_PATH = "assets/bombs/bomb_character_o_explode.png"
 
