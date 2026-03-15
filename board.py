@@ -1,4 +1,5 @@
 from settings import *
+import random
 
 
 class Board:
@@ -9,8 +10,21 @@ class Board:
         self.offset_y = (HEIGHT - (len(self.grid) * self.tile_size)) / 2
 
         # Creating surface
-        self.surface = pygame.Surface((WIDTH, HEIGHT))
-        self.surface.fill(BG_COLOR)  # Background color
+        self.surface = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
+
+        # Load and scale wall images
+        self.wall_images = []
+        for path in [WALL1_IMAGE_PATH, WALL2_IMAGE_PATH]:
+            try:
+                img = pygame.transform.scale(pygame.image.load(path).convert_alpha(), (int(self.tile_size), int(self.tile_size)))
+                self.wall_images.append(img)
+            except pygame.error:
+                print(f"Wall image {path} not found.")
+        
+        if not self.wall_images:
+            print("No wall images found, using default color.")
+            self.wall_images = None
+
         self._pre_render_board()
 
     def _pre_render_board(self):
@@ -22,8 +36,13 @@ class Board:
                 t_size = int(self.tile_size)
 
                 if self.grid[i][j] == 1: # Blocks
-                    pygame.draw.rect(self.surface, BOARD_COLOR, (tile_x, tile_y, t_size, t_size)) # Inside
-                    pygame.draw.rect(self.surface, BORDER_COLOR, (tile_x, tile_y, t_size, t_size), line_size)  # Border
+                    if self.wall_images:
+                        # Randomly select a wall image
+                        wall_image = random.choice(self.wall_images)
+                        self.surface.blit(wall_image, (tile_x, tile_y))
+                    else:
+                        pygame.draw.rect(self.surface, BOARD_COLOR, (tile_x, tile_y, t_size, t_size)) # Inside
+                        pygame.draw.rect(self.surface, BORDER_COLOR, (tile_x, tile_y, t_size, t_size), line_size)  # Border
 
 
     def draw(self, screen):

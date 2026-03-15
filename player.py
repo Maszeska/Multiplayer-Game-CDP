@@ -32,6 +32,13 @@ class Player(GameObject):
         self.lives = PLAYER_HP
         self.invulnerable_timer = 0
 
+        # Load hurt sound
+        try:
+            self.hurt_sound = pygame.mixer.Sound(HURT_SOUND_PATH)
+        except pygame.error:
+            print("Hurt sound not found.")
+            self.hurt_sound = None
+
     def move(self, board, use_arrows=False):
         keys = pygame.key.get_pressed()
         is_moving = False
@@ -80,6 +87,8 @@ class Player(GameObject):
             self.lives -= 1
             print(f"Ouch! Zostało żyć: {self.lives}")
             self.invulnerable_timer = FPS * 2
+            if self.hurt_sound:
+                self.hurt_sound.play()
 
     def update_timers(self):
         if self.invulnerable_timer > 0:

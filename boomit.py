@@ -33,6 +33,13 @@ class BoomIt:
 
         load_assets()
 
+        # Load background image
+        try:
+            self.bg_image = pygame.transform.scale(pygame.image.load(BACKGROUND_IMAGE_PATH).convert(), (WIDTH, HEIGHT))
+        except pygame.error:
+            print("Background image not found.")
+            self.bg_image = None
+
         self.board = Board(BOARD)
 
         print("Łączenie z serwerem...")
@@ -170,6 +177,8 @@ class BoomIt:
         elif self.state == "options":
             self.options_menu.draw(self.screen)
         else:
+            if self.bg_image:
+                self.screen.blit(self.bg_image, (0, 0))
             self.board.draw(self.screen)
 
             for bomb in self.active_bombs:
