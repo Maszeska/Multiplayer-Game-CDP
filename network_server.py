@@ -1,9 +1,10 @@
 import pickle
 import socket
 import time
+from settings import *
 
-server = "192.168.68.52" # Twoje IP
-port = 5555
+server = SERVER_IP
+port = SERVER_PORT
 
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 s.bind((server, port))

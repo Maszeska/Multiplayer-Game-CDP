@@ -1,7 +1,7 @@
 import pygame.transform
 from pygame.examples.grid import TILE_SIZE
 
-from other_objects import *
+from entities.other_objects import *
 
 
 class ParallaxBackground:

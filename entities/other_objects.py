@@ -1,5 +1,4 @@
-import settings
-from game_object import GameObject
+from entities.game_object import GameObject
 from settings import *
 
 
@@ -7,7 +6,7 @@ class BackgroundDino(GameObject):
     def __init__(self, x, y, size):
         super().__init__(x, y, size)
 
-        self.frames = self.load_animation("assets/player_images/player_0/player_0_move.png", num_frames=6, frame_w=PLAYER_FRAME_W, frame_h=PLAYER_FRAME_H)
+        self.frames = self.load_animation(DINO_BG_PATH, num_frames=6, frame_w=PLAYER_FRAME_W, frame_h=PLAYER_FRAME_H)
 
         self.animation_speed = 0.2
 

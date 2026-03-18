@@ -1,5 +1,5 @@
 from settings import *
-from game_object import GameObject
+from entities.game_object import GameObject
 import pygame
 
 
@@ -10,13 +10,18 @@ class Bomb(GameObject):
     animations_loaded = False
     shared_idle_frames = []
     shared_explosion_frames = []
+    shared_blast_frames = []  # NOWE: Pamięć podręczna dla klatek ognia
 
     def __init__(self, x, y, size):
         super().__init__(x, y, size)
 
+        # Ładowanie animacji tylko raz dla wszystkich bomb
         if not Bomb.animations_loaded:
             Bomb.shared_idle_frames = self.load_animation(BOMB_IDLE_PATH, 2, BOMB_FRAME_W, BOMB_FRAME_H)
             Bomb.shared_explosion_frames = self.load_animation(BOMB_EXPLOSION_PATH, 3, BOMB_FRAME_W, BOMB_FRAME_H)
+            # Ładujemy nową animację ognia
+            Bomb.shared_blast_frames = self.load_animation(BLAST_EFFECT_PATH, BLAST_FRAMES_NUM, BLAST_FRAME_W,
+                                                           BLAST_FRAME_H)
             Bomb.animations_loaded = True
 
         if not Bomb.sound_loaded:
@@ -30,7 +35,8 @@ class Bomb(GameObject):
 
         self.idle_frames = Bomb.shared_idle_frames
         self.explosion_frames = Bomb.shared_explosion_frames
-        self.explosion_surface = None
+        self.blast_frames = Bomb.shared_blast_frames  # Przypisanie klatek ognia do bomby
+
         self.state = "ticking"
         self.timer = EXPLOSION_DURATION * FPS
         self.blast_tiles = []
@@ -62,39 +68,39 @@ class Bomb(GameObject):
             self.timer -= 1
             if self.timer <= 0:
                 self.state = "exploding"
-                self.current_frame = 0 # explosion starts from the 1st frame of animation
-
+                self.current_frame = 0
                 self.calculate_blast_tiles(board)
-
-                self.explosion_surface = pygame.Surface((board.tile_size, board.tile_size), pygame.SRCALPHA)
-                self.explosion_surface.fill((255, 0, 0, 100))
 
                 if Bomb.explosion_sound:
                     Bomb.explosion_sound.play()
 
         elif self.state == "exploding":
-            if int(self.current_frame) >= len(self.explosion_frames) - 1:
+            if int(self.current_frame) >= len(self.blast_frames) - 1:
                 self.state = "done"
 
     def draw(self, screen, board):
-
         if self.state == "done":
             return
 
+        if self.state == "ticking":
+            self.current_frame += ANIMATION_SPEED
+        elif self.state == "exploding":
+            self.current_frame += 0.30
+
         if self.state == "exploding":
+            frame_idx = min(int(self.current_frame), len(self.blast_frames) - 1)
+            blast_img = self.blast_frames[frame_idx]
+
             for row, col in self.blast_tiles:
                 rect_x = (col * board.tile_size) + board.offset_x
                 rect_y = (row * board.tile_size) + board.offset_y
-
-                screen.blit(self.explosion_surface, (rect_x, rect_y))
+                screen.blit(blast_img, (rect_x, rect_y))
 
         if self.state == "ticking":
-            self.current_frame += ANIMATION_SPEED
-            frames = self.idle_frames
-            img = frames[int(self.current_frame) % len(frames)]
+
+            img = self.idle_frames[int(self.current_frame) % len(self.idle_frames)]
         else:
-            self.current_frame += ANIMATION_SPEED
-            frames = self.explosion_frames
-            img = frames[int(self.current_frame) % len(frames)]
+            frame_idx_bomb = min(int(self.current_frame), len(self.explosion_frames) - 1)
+            img = self.explosion_frames[frame_idx_bomb]
 
         screen.blit(img, (self.x, self.y))

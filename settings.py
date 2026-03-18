@@ -1,16 +1,29 @@
 import pygame
 
-# --- Screen config ---
+# ==========================================
+# 1. server configuration
+# ==========================================
+SERVER_IP = "192.168.68.52"  # Twoje IP lokalne
+SERVER_PORT = 5555
+
+# ==========================================
+# 2. screen settings
+# ==========================================
 WIDTH, HEIGHT = 1200, 714
 FPS = 60
 
-# --- Colors/ Fonts etc. ---
+# ==========================================
+# 3. colors and fonts
+# ==========================================
 BG_COLOR = 'black'
 BOARD_COLOR = 'blue'
 BORDER_COLOR = 'white'
 FONT_SIZE = 30
 
-# --- Player ---
+# ==========================================
+# 4. gameplay settings
+# ==========================================
+# --- (Player) ---
 PLAYER_SPEED = 3
 PLAYER_FRAME_W = 24
 PLAYER_FRAME_H = 24
@@ -18,15 +31,66 @@ HITBOX_BUFFER_SIDE = 7.5
 HITBOX_BUFFER_TOP = 7.5
 HITBOX_BUFFER_BOTTOM = 3.75
 PLAYER_HP = 3
+PLAYER_JUMP_FRAMES = 4
 
-# --- Bomb ---
+# --- (Bomb) ---
 BOMB_FRAME_W = 64
 BOMB_FRAME_H = 64
 EXPLOSION_DURATION = 1
 BOMB_RANGE = 2
 
-# --- Boards ---
-BOARD = [
+# --- (Blast effect) ---
+# --- Dodane do settings.py ---
+BLAST_EFFECT_PATH = "assets/bombs/explosion_effecy_1.png"
+BLAST_FRAME_W = 32
+BLAST_FRAME_H = 32
+BLAST_FRAMES_NUM = 14
+
+# ==========================================
+# 5. Animation parameters
+# ==========================================
+ANIMATION_SPEED = 0.1
+HATCH_SPEED = 0.05
+SHAKE_ANIM_SPEED = 0.2
+SHAKE_DURATION = 120  # Egg shaking animation in frames
+PODIUM_ANIM_SPEED = 0.15
+
+# ==========================================
+# 6. Paths to assets
+# ==========================================
+# --- Sounds ---
+MUSIC_PATH = "sounds/stateside_zara_larsson_sound.ogg"
+BOOM_SOUND_PATH = "sounds/boom.wav"
+
+# --- UI Graphics ---
+ICON_PATH = "assets/bombs/bomb_icon.png"
+BG_TITLE_PATH = "assets/background/bg_title.png"
+OVERLAY = "assets/background/bg_menu_overlay.png"
+INSTRUCTION = "assets/other/Buttons_Instructions.png"
+MENU_FONT_PATH = "assets/fonts/CyberpunkCraftpixPixel.otf"
+
+# --- Entities Graphics ---
+BOMB_IDLE_PATH = "assets/bombs/bomb_character_o_idle.png"
+BOMB_EXPLOSION_PATH = "assets/bombs/bomb_character_o_explode.png"
+DINO_BG_PATH = "assets/player_images/player_0/player_0_move.png"
+
+# --- Layer Config ---
+LAYER_CONFIG = [
+    {"path": "assets/background/bg_layer_1.png", "speed": 0.4},
+    {"path": "assets/background/bg_layer_2.png", "speed": 0.0},
+    {"path": "assets/background/bg_layer_3.png", "speed": 2.5}
+]
+
+LAYER_CONFIG_MAP_0 = [
+    {"path": "assets/maps/map_0/background_0.png"},
+    {"path": "assets/maps/map_0/background_1.png"},
+    {"path": "assets/maps/map_0/background_2.png"},
+]
+
+# ==========================================
+# 7. Boards
+# ==========================================
+BOARD_1 = [
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
     [1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1],
     [1, 2, 1, 2, 1, 1, 1, 2, 1, 2, 1, 1, 1, 2, 1, 2, 1],
@@ -46,31 +110,4 @@ BOARD = [
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
 ]
 
-# --- Paths to assets ---
-# sounds
-MUSIC_PATH = "sounds/stateside_zara_larsson_sound.ogg"
-BOOM_SOUND_PATH = "sounds/boom.wav"
-
-# Graphics
-BOMB_IDLE_PATH = "assets/bombs/bomb_character_o_idle.png"
-BOMB_EXPLOSION_PATH = "assets/bombs/bomb_character_o_explode.png"
-
-LAYER_CONFIG = [
-            {"path": "assets/background/bg_layer_1.png", "speed": 0.4},
-            {"path": "assets/background/bg_layer_2.png", "speed": 0.0},
-            {"path": "assets/background/bg_layer_3.png", "speed": 2.5}
-        ]
-OVERLAY = "assets/background/bg_menu_overlay.png"
-
-# game
-ICON_PATH = "assets/bombs/bomb_icon.png"
-BG_IMAGE_MENU = "assets/background/boomit_main_menu.png"
-INSTRUCTION = "assets/other/Buttons_Instructions.png"
-
-MENU_FONT_PATH = "assets/fonts/CyberpunkCraftpixPixel.otf"
-
-# --- Animation parameters ---
-ANIMATION_SPEED = 0.1
-HATCH_SPEED = 0.05
-SHAKE_ANIM_SPEED = 0.2
-SHAKE_DURATION = 120 # Egg shaking animation in frames
+BOARDS = [BOARD_1]

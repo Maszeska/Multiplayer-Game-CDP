@@ -2,13 +2,13 @@ import socket
 import pickle
 import threading
 import time
-
+from settings import *
 
 class Network:
     def __init__(self):
         self.client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.server = "192.168.68.52"  # Upewnij się, że to nadal Twoje IP
-        self.port = 5555
+        self.server = SERVER_IP
+        self.port = SERVER_PORT
         self.server_addr = (self.server, self.port)
 
         self.client.bind(('', 0))
@@ -16,7 +16,7 @@ class Network:
 
         self.start_pos = self.join()
 
-        self.connected_players_count = 1  # Domyślnie 1 (tylko my)
+        self.connected_players_count = 1
 
         self.all_players_data = [None, None, None, None]
         self.running = True
@@ -43,7 +43,6 @@ class Network:
             packet = (self.start_pos, data)
             self.client.sendto(pickle.dumps(packet), self.server_addr)
 
-            # NAPRAWA: Musimy zwrócić grze listę przeciwników!
             return self.all_players_data
         except Exception as e:
             print("Send error:", e)
@@ -56,11 +55,10 @@ class Network:
                 if addr == self.server_addr:
                     data = pickle.loads(raw_data)
 
-                    # Sprawdzamy, czy to specjalny pakiet z licznikiem
                     if isinstance(data, str) and data.startswith("COUNT:"):
                         self.connected_players_count = int(data.split(":")[1])
                     else:
-                        self.all_players_data = data  # W przeciwnym razie to zwykła mapa
+                        self.all_players_data = data
             except Exception:
                 pass
 

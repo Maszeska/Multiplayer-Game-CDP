@@ -1,6 +1,6 @@
 from settings import *
-from game_object import GameObject
-from bomb import Bomb
+from entities.game_object import GameObject
+from entities.bomb import Bomb
 
 
 class Player(GameObject):
