@@ -1,81 +1,181 @@
+import pygame
 from settings import *
-import math
+from parallax_background import ParallaxBackground
+from bomb import Bomb
+
 
 class OptionsMenu:
     def __init__(self):
-        self.bg_image = pygame.image.load(BG_IMAGE_MENU).convert()
-        self.bg_image = pygame.transform.scale(self.bg_image, (WIDTH, HEIGHT))
+        self.parallax_bg = ParallaxBackground(LAYER_CONFIG)
 
-        self.font = pygame.font.SysFont(MENU_FONT_PATH, 50, bold=True)
-        self.small_font = pygame.font.SysFont(MENU_FONT_PATH, 35, bold=True)
+        self.font_max = pygame.font.Font(MENU_FONT_PATH, 45)
+        self.font_labels = pygame.font.Font(MENU_FONT_PATH, 40)
 
-        self.volume = 50
+        if not Bomb.sound_loaded:
+            try:
+                Bomb.explosion_sound = pygame.mixer.Sound(BOOM_SOUND_PATH)
+                Bomb.sound_loaded = True
+            except pygame.error:
+                print("Nie udało się załadować pliku z dźwiękiem wybuchu.")
+
+        self.music_volume = 50
+        self.bomb_volume = 50
+
+        self._apply_volumes()
+
         self.timer = 0.0
-
-        pygame.mixer.music.set_volume(self.volume / 100.0)
-
-    def handle_event(self, event):
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            if event.button == 1:
-                mouse_pos = pygame.mouse.get_pos()
-
-                for button in self.buttons:
-                    if button["rect"].collidepoint(mouse_pos):
-                        action = button["action"]
-
-                        if action == "MINUS" and self.volume > 0:
-                            self.volume -= 10
-                            self.update_volume()
-                        elif action == "PLUS" and self.volume < 100:
-                            self.volume += 10
-                            self.update_volume()
-                        elif action == "BACK":
-                            return "BACK"
-        return None
-
-    def update_volume(self):
-        vol_float = self.volume / 100.0
-        pygame.mixer.music.set_volume(vol_float)
-
-        from bomb import Bomb
-        if Bomb.explosion_sound:
-            Bomb.explosion_sound.set_volume(vol_float)
-
-    def draw(self, screen):
-        screen.blit(self.bg_image, (0, 0))
-        self.timer += 0.1
-        mouse_pos = pygame.mouse.get_pos()
         self.buttons = []
 
-        vol_text = f"VOLUME: {self.volume}%"
-        vol_surface = self.font.render(vol_text, True, 'white')
-        vol_x = (WIDTH - vol_surface.get_width()) // 2
-        screen.blit(vol_surface, (vol_x, HEIGHT * 0.4))
+        self.slider_x = 520
+        self.slider_width = 300
+        self.slider_height = 10
+        self.handle_radius = 15
 
-        minus_text = "[ - ]"
-        minus_surface = self.font.render(minus_text, True, 'yellow' if self._is_hovered(mouse_pos, vol_x, HEIGHT * 0.55,
-                                                                                        minus_text) else 'white')
-        minus_rect = screen.blit(minus_surface, (vol_x, HEIGHT * 0.55))
-        self.buttons.append({"action": "MINUS", "rect": minus_rect})
+        self.music_y = HEIGHT * 0.3 + 20
+        self.bomb_y = HEIGHT * 0.45 + 20
 
-        plus_text = "[ + ]"
-        plus_surface = self.font.render(plus_text, True,
-                                        'yellow' if self._is_hovered(mouse_pos, vol_x + 150, HEIGHT * 0.55,
-                                                                     plus_text) else 'white')
-        plus_rect = screen.blit(plus_surface, (vol_x + 150, HEIGHT * 0.55))
-        self.buttons.append({"action": "PLUS", "rect": plus_rect})
+        self.dragging_music = False
+        self.dragging_bomb = False
 
-        back_text = "BACK"
-        back_x = (WIDTH - self.font.size(back_text)[0]) // 2
-        back_y = HEIGHT * 0.8
+        self._calculate_buttons()
 
-        is_back_hovered = self._is_hovered(mouse_pos, back_x, back_y, back_text)
-        y_offset = math.sin(self.timer * 2) * 8 if is_back_hovered else 0
+    def _apply_volumes(self):
+        pygame.mixer.music.set_volume(self.music_volume / 100.0)
+        if Bomb.explosion_sound:
+            Bomb.explosion_sound.set_volume(self.bomb_volume / 100.0)
 
-        back_surface = self.font.render(back_text, True, 'yellow' if is_back_hovered else 'white')
-        back_rect = screen.blit(back_surface, (back_x, back_y + y_offset))
-        self.buttons.append({"action": "BACK", "rect": pygame.Rect(back_x, back_y, back_rect.width, back_rect.height)})
+    def _calculate_buttons(self):
+        self.buttons = []
+        temp_font = pygame.font.Font(MENU_FONT_PATH, 45)
 
-    def _is_hovered(self, mouse_pos, x, y, text):
-        rect = pygame.Rect(x, y, self.font.size(text)[0], self.font.size(text)[1])
-        return rect.collidepoint(mouse_pos)
+        left_x = 130
+        bottom_y = HEIGHT * 0.70
+
+        reset_w, reset_h = temp_font.size("RESET")
+        goback_w, goback_h = temp_font.size("GO BACK")
+
+        btn_reset = pygame.Rect(left_x, bottom_y, reset_w, reset_h)
+        btn_goback = pygame.Rect(left_x, bottom_y + 80, goback_w, goback_h)
+
+        self._add_button("RESET", "RESET", btn_reset)
+        self._add_button("GO BACK", "GO BACK", btn_goback)
+
+    def _add_button(self, action, text, rect):
+        self.buttons.append({
+            "action": action,
+            "text": text,
+            "rect": rect,
+            "centery": rect.centery,
+            "scale": 0.83
+        })
+
+    def _update_volume_from_mouse(self, mouse_x, slider_type):
+        relative_x = mouse_x - self.slider_x
+
+        percentage = max(0, min(100, int((relative_x / self.slider_width) * 100)))
+
+        if slider_type == "music":
+            self.music_volume = percentage
+            pygame.mixer.music.set_volume(self.music_volume / 100.0)
+        elif slider_type == "bomb":
+            self.bomb_volume = percentage
+            if Bomb.explosion_sound:
+                Bomb.explosion_sound.set_volume(self.bomb_volume / 100.0)
+
+    def handle_event(self, event):
+        mouse_pos = pygame.mouse.get_pos()
+
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            for button in self.buttons:
+                if button["rect"].collidepoint(mouse_pos):
+                    if button["action"] == "RESET":
+                        self.music_volume = 50
+                        self.bomb_volume = 50
+                        self._apply_volumes()
+                    elif button["action"] == "GO BACK":
+                        return "GO BACK"
+
+            music_hitbox = pygame.Rect(self.slider_x, self.music_y - 20, self.slider_width, 40)
+            if music_hitbox.collidepoint(mouse_pos):
+                self.dragging_music = True
+                self._update_volume_from_mouse(mouse_pos[0], "music")
+
+            bomb_hitbox = pygame.Rect(self.slider_x, self.bomb_y - 20, self.slider_width, 40)
+            if bomb_hitbox.collidepoint(mouse_pos):
+                self.dragging_bomb = True
+                self._update_volume_from_mouse(mouse_pos[0], "bomb")
+
+        elif event.type == pygame.MOUSEBUTTONUP and event.button == 1:
+            self.dragging_music = False
+
+            if self.dragging_bomb:
+                self.dragging_bomb = False
+                if Bomb.explosion_sound:
+                    Bomb.explosion_sound.play()
+
+        elif event.type == pygame.MOUSEMOTION:
+            if self.dragging_music:
+                self._update_volume_from_mouse(mouse_pos[0], "music")
+            if self.dragging_bomb:
+                self._update_volume_from_mouse(mouse_pos[0], "bomb")
+
+        return None
+
+    def _draw_slider(self, screen, y_pos, volume, is_dragging, mouse_pos):
+
+        hitbox = pygame.Rect(self.slider_x, y_pos - 20, self.slider_width, 40)
+        is_hovered = hitbox.collidepoint(mouse_pos)
+
+        bg_rect = pygame.Rect(self.slider_x, y_pos - self.slider_height // 2, self.slider_width, self.slider_height)
+        pygame.draw.rect(screen, (80, 80, 80), bg_rect, border_radius=5)
+
+        fill_width = int((volume / 100.0) * self.slider_width)
+        fill_rect = pygame.Rect(self.slider_x, y_pos - self.slider_height // 2, fill_width, self.slider_height)
+        pygame.draw.rect(screen, (52, 107, 211), fill_rect, border_radius=15)
+
+
+        handle_x = self.slider_x + fill_width
+        color = "white"
+        pygame.draw.circle(screen, color, (handle_x, y_pos), self.handle_radius)
+
+    def draw(self, screen):
+        self.parallax_bg.draw(screen)
+
+        self.timer += 0.1
+        mouse_pos = pygame.mouse.get_pos()
+
+        left_x = 120
+
+        music_label = self.font_labels.render("MUSIC VOLUME:", True, "white")
+        bomb_label = self.font_labels.render("BOMB VOLUME:", True, "white")
+
+        music_val = self.font_labels.render(f"{self.music_volume}%", True, "white")
+        bomb_val = self.font_labels.render(f"{self.bomb_volume}%", True, "white")
+
+        screen.blit(music_label, (left_x, HEIGHT * 0.3))
+        screen.blit(bomb_label, (left_x, HEIGHT * 0.45))
+
+        screen.blit(music_val, (self.slider_x + self.slider_width + 30, HEIGHT * 0.3))
+        screen.blit(bomb_val, (self.slider_x + self.slider_width + 30, HEIGHT * 0.45))
+
+        self._draw_slider(screen, self.music_y, self.music_volume, self.dragging_music, mouse_pos)
+        self._draw_slider(screen, self.bomb_y, self.bomb_volume, self.dragging_bomb, mouse_pos)
+
+        for button in self.buttons:
+            text = button["text"]
+            rect = button["rect"]
+
+            is_hover = rect.collidepoint(mouse_pos)
+            target_scale = 1.0 if is_hover else 0.83
+
+            button["scale"] += (target_scale - button["scale"]) * 0.15
+
+            color = (52, 107, 211) if is_hover else "white"
+            text_surface = self.font_max.render(text, True, color)
+
+            new_width = int(text_surface.get_width() * button["scale"])
+            new_height = int(text_surface.get_height() * button["scale"])
+            scaled_surface = pygame.transform.smoothscale(text_surface, (new_width, new_height))
+
+            draw_rect = scaled_surface.get_rect(x=rect.x, centery=button["centery"])
+            screen.blit(scaled_surface, draw_rect)

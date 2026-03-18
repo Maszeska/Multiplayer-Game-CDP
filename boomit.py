@@ -4,6 +4,7 @@ from settings import *
 from player import Player
 from menu import MainMenu
 from options_menu import OptionsMenu
+from how_to_play_menu import HowToPlayMenu
 from network import Network
 from bomb import Bomb
 
@@ -30,6 +31,8 @@ class BoomIt:
         self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
         pygame.display.set_caption("Boomit!")
         self.timer = pygame.time.Clock()
+
+        self.ui_font = pygame.font.Font(MENU_FONT_PATH, 35)
 
         load_assets()
 
@@ -60,6 +63,7 @@ class BoomIt:
         self.enemies = {}
         self.main_menu = MainMenu()
         self.options_menu = OptionsMenu()
+        self.how_to_play_menu = HowToPlayMenu()
 
         self.state = "menu"
         self.active_bombs = []
@@ -76,14 +80,25 @@ class BoomIt:
 
             if self.state == "menu":
                 clicked_button = self.main_menu.handle_event(event)
-                if clicked_button == "PLAY":
+
+                if clicked_button == "JOIN GAME":
                     self.state = "shaking"
                 elif clicked_button == "OPTIONS":
                     self.state = "options"
+                elif clicked_button == "HOW TO PLAY":
+                    self.state = "how_to_play"
+                elif clicked_button == "QUIT GAME":
+                    pygame.quit()
+                    sys.exit()
+
 
             elif self.state == "options":
-                clicked_button = self.options_menu.handle_event(event)
-                if clicked_button == "BACK":
+                action = self.options_menu.handle_event(event)
+                if action == "GO BACK":
+                    self.state = "menu"
+            elif self.state == "how_to_play":
+                action = self.how_to_play_menu.handle_event(event)
+                if action == "GO BACK":
                     self.state = "menu"
 
             elif event.type == pygame.KEYDOWN:
@@ -169,6 +184,8 @@ class BoomIt:
             self.main_menu.draw(self.screen)
         elif self.state == "options":
             self.options_menu.draw(self.screen)
+        elif self.state == "how_to_play":
+            self.how_to_play_menu.draw(self.screen)
         else:
             self.board.draw(self.screen)
 
@@ -192,6 +209,12 @@ class BoomIt:
                         enemy.draw(self.screen, data['state'], data['is_moving'])
 
             self.player.draw(self.screen, self.state, self.is_moving)
+
+        if hasattr(self, 'network') and self.network.all_players_data and self.state not in ["playing", "dying", "shaking", "hatching", "hatching"]:
+            text_str = f"PLAYERS: {self.network.connected_players_count}/4"
+            text_surface = self.ui_font.render(text_str, True, "white")
+            text_rect = text_surface.get_rect(topright=(WIDTH - 20, 20))
+            self.screen.blit(text_surface, text_rect)
 
         pygame.display.flip()
 

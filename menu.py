@@ -1,31 +1,42 @@
 import math
-import pygame
 from settings import *
+from parallax_background import ParallaxBackground
 
 
 class MainMenu:
     def __init__(self):
-        self.bg_image = pygame.image.load(BG_IMAGE_MENU).convert()
-        self.bg_image = pygame.transform.scale(self.bg_image, (WIDTH, HEIGHT))
+        self.parallax_bg = ParallaxBackground(LAYER_CONFIG)
 
-        self.font = pygame.font.SysFont(MENU_FONT_PATH, 50, bold=True)
-        self.options = ["PLAY", "OPTIONS"]
+        self.bg_title = pygame.image.load("assets/background/bg_title.png").convert_alpha()
+        self.bg_title = pygame.transform.scale(self.bg_title, (WIDTH, HEIGHT))
+
+        self.font_max = pygame.font.Font(MENU_FONT_PATH, 45)
+
+        self.options = ["JOIN GAME", "OPTIONS", "HOW TO PLAY", "QUIT GAME"]
         self.buttons = []
         self.timer = 0.0
 
         self._calculate_buttons()
 
     def _calculate_buttons(self):
-        start_y = HEIGHT * 0.6
+        start_y = HEIGHT * 0.4
         gap = 80
 
+        temp_font = pygame.font.Font(MENU_FONT_PATH, 50)
+
         for i, text in enumerate(self.options):
-            text_width, text_height = self.font.size(text)
-            x = (WIDTH - text_width) // 2
+            text_width, text_height = temp_font.size(text)
+            x = 130
             y = start_y + (i * gap)
 
             rect = pygame.Rect(x, y, text_width, text_height)
-            self.buttons.append({"text": text, "rect": rect})
+
+            self.buttons.append({
+                "text": text,
+                "rect": rect,
+                "centery": rect.centery,
+                "scale": 0.83
+            })
 
     def handle_event(self, event):
         if event.type == pygame.MOUSEBUTTONDOWN:
@@ -37,19 +48,31 @@ class MainMenu:
         return None
 
     def draw(self, screen):
-        screen.blit(self.bg_image, (0, 0))
-        self.timer += 0.1
+        self.parallax_bg.draw(screen)
 
+        screen.blit(self.bg_title, (0, 0))
+
+        self.timer += 0.1
         mouse_pos = pygame.mouse.get_pos()
 
         for button in self.buttons:
             text = button["text"]
             rect = button["rect"]
 
-            is_hovered = rect.collidepoint(mouse_pos)
-            color = "yellow" if is_hovered else "white"
+            is_hover = rect.collidepoint(mouse_pos)
 
-            y_offset = math.sin(self.timer * 2) * 8 if is_hovered else 0
+            target_scale = 1.0 if is_hover else 0.83
 
-            text_surface = self.font.render(text, True, color)
-            screen.blit(text_surface, (rect.x, rect.y + y_offset))
+            button["scale"] += (target_scale - button["scale"]) * 0.15
+
+            color = (52, 107, 211) if is_hover else "white"
+            text_surface = self.font_max.render(text, True, color)
+
+            new_width = int(text_surface.get_width() * button["scale"])
+            new_height = int(text_surface.get_height() * button["scale"])
+            scaled_surface = pygame.transform.smoothscale(text_surface, (new_width, new_height))
+
+
+            draw_rect = scaled_surface.get_rect(x=rect.x, centery=button["centery"])
+
+            screen.blit(scaled_surface, draw_rect)

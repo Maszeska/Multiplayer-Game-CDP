@@ -1,7 +1,7 @@
 import pygame
 
 # --- Screen config ---
-WIDTH, HEIGHT = 935, 714
+WIDTH, HEIGHT = 1200, 714
 FPS = 60
 
 # --- Colors/ Fonts etc. ---
@@ -48,17 +48,26 @@ BOARD = [
 
 # --- Paths to assets ---
 # sounds
-MUSIC_PATH = ""
+MUSIC_PATH = "sounds/stateside_zara_larsson_sound.ogg"
 BOOM_SOUND_PATH = "sounds/boom.wav"
 
 # Graphics
 BOMB_IDLE_PATH = "assets/bombs/bomb_character_o_idle.png"
 BOMB_EXPLOSION_PATH = "assets/bombs/bomb_character_o_explode.png"
 
+LAYER_CONFIG = [
+            {"path": "assets/background/bg_layer_1.png", "speed": 0.4},
+            {"path": "assets/background/bg_layer_2.png", "speed": 0.0},
+            {"path": "assets/background/bg_layer_3.png", "speed": 2.5}
+        ]
+OVERLAY = "assets/background/bg_menu_overlay.png"
+
 # game
 ICON_PATH = "assets/bombs/bomb_icon.png"
 BG_IMAGE_MENU = "assets/background/boomit_main_menu.png"
-MENU_FONT_PATH = "assets/fonts/PressStart2P-Regular.ttf"
+INSTRUCTION = "assets/other/Buttons_Instructions.png"
+
+MENU_FONT_PATH = "assets/fonts/CyberpunkCraftpixPixel.otf"
 
 # --- Animation parameters ---
 ANIMATION_SPEED = 0.1
