@@ -29,7 +29,7 @@ class GameScene:
         self.final_ranking = []
         # W metodzie __init__
         self.victory_timer = None
-        self.victory_delay = 4000
+        self.victory_delay = 2000
 
     def _init_player(self):
         rows = len(self.board.grid)
