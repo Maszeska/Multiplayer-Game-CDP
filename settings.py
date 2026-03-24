@@ -82,10 +82,28 @@ LAYER_CONFIG = [
 ]
 
 LAYER_CONFIG_MAP_0 = [
-    {"path": "assets/maps/map_0/background_0.png"},
-    {"path": "assets/maps/map_0/background_1.png"},
-    {"path": "assets/maps/map_0/background_2.png"},
+    {"path": "assets/maps/map_0/bg-back.png", "speed": 0.6},
+    {"path": "assets/maps/map_0/bg-stars.png", "speed": 0.4},
+    {"path": "assets/maps/map_0/bg-planet.png", "speed": 0.0}
 ]
+
+LAYER_CONFIG_MAP_1 = [
+    {"path": "assets/maps/map_1/background.png", "speed": 0.1},
+    {"path": "assets/maps/map_1/back-walls.png", "speed": 0.2}
+]
+
+LAYER_CONFIG_MAP_2 = [
+    {"path": "assets/maps/map_2/back.png", "speed": 0.1},
+    {"path": "assets/maps/map_2/middle.png", "speed": 0.2},
+    {"path": "assets/maps/map_2/near.png", "speed": 0.3}
+]
+
+
+MAP_BACKGROUNDS = [LAYER_CONFIG_MAP_0, LAYER_CONFIG_MAP_1, LAYER_CONFIG_MAP_2]
+
+TILE_PATHS = [["assets/maps/map_0/rock.png"],
+              ["assets/maps/map_1/rock.png", "assets/maps/map_1/stone.png", "assets/maps/map_1/stone-head.png", "assets/maps/map_1/plant-small.png"],
+              ["assets/maps/map_2/plant-1.png"]]
 
 # ==========================================
 # 7. Boards

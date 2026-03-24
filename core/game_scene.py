@@ -3,12 +3,17 @@ from settings import *
 from core.board import Board
 from entities.player import Player
 from entities.bomb import Bomb
+from ui.map_background import MapBackground  # <--- Dodany import tła mapy
 
 
 class GameScene:
     def __init__(self, change_scene_callback, network, map_index):
         self.change_scene = change_scene_callback
-        self.board = Board(BOARDS[map_index])
+
+        # --- Dodane inicjalizowanie tła i zmodyfikowany Board ---
+        self.map_bg = MapBackground(map_index)
+        self.board = Board(map_index)  # Zmienione na map_index, aby Board wiedział, jaką grafikę klocka załadować
+
         self.network = network
         self.player_id = int(self.network.start_pos)
 
@@ -170,12 +175,17 @@ class GameScene:
             print("Błąd synchronizacji:", e)
 
     def draw(self, screen):
+        # 1. NAJPIERW rysujemy tło z efektem paralaksy (na samym dole)
+        self.map_bg.draw(screen)
+
+        # 2. Następnie rysujemy ściany planszy (background w Board musi być przezroczysty)
         self.board.draw(screen)
 
+        # 3. Rysujemy bomby
         for bomb in self.active_bombs:
             bomb.draw(screen, self.board)
 
-        # 1. Rysowanie przeciwników
+        # 4. Rysowanie przeciwników
         if self.all_players_data:
             for i, data in enumerate(self.all_players_data):
                 if i != self.player_id and data is not None:
@@ -196,7 +206,7 @@ class GameScene:
                     # Rysujemy normalnie (jeśli stan to "dying", odegra animację i zniknie w następnej klatce)
                     enemy.draw(screen, data['state'], data['is_moving'])
 
-        # 2. Rysowanie lokalnego gracza (Ciebie)
+        # 5. Rysowanie lokalnego gracza (Ciebie)
         # Rysujemy tylko, jeśli nie jesteśmy martwi
         if self.game_state != "dead":
             self.player.draw(screen, self.game_state, self.is_moving)
