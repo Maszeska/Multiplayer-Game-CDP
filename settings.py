@@ -3,7 +3,7 @@ import pygame
 # ==========================================
 # 1. server configuration
 # ==========================================
-SERVER_IP = "192.168.68.61"  # Twoje IP lokalne
+SERVER_IP = "10.117.228.38"  # Twoje IP lokalne
 SERVER_PORT = 5555
 
 # ==========================================
@@ -101,9 +101,12 @@ LAYER_CONFIG_MAP_2 = [
 
 MAP_BACKGROUNDS = [LAYER_CONFIG_MAP_0, LAYER_CONFIG_MAP_1, LAYER_CONFIG_MAP_2]
 
-TILE_PATHS = [["assets/maps/map_0/rock.png"],
+TILE_PATHS = [["assets/maps/map_0/asteroid-1.png", "assets/maps/map_0/asteroid-2.png",  "assets/maps/map_0/asteroid-3.png",  "assets/maps/map_0/asteroid-4.png"],
               ["assets/maps/map_1/rock.png", "assets/maps/map_1/stone.png", "assets/maps/map_1/stone-head.png", "assets/maps/map_1/plant-small.png"],
-              ["assets/maps/map_2/plant-1.png"]]
+              ["assets/maps/map_2/plant-1.png", "assets/maps/map_2/plant-2.png", "assets/maps/map_2/crystal-1.png",
+               "assets/maps/map_2/crystal-2.png",  "assets/maps/map_2/plant-2.png", "assets/maps/map_2/bush.png",
+               "assets/maps/map_2/trunk.png", "assets/maps/map_2/tree-pink.png", "assets/maps/map_2/tree-orange.png"],
+              "assets/maps/map_2/rock.png",  "assets/maps/map_2/sign.png"]
 
 # ==========================================
 # 7. Boards

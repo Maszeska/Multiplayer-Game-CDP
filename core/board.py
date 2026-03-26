@@ -49,7 +49,7 @@ class Board:
                     tile_y = int(i * self.tile_size + self.offset_y)
 
                     # Deterministyczny wybór płytki na podstawie pozycji!
-                    tile_index = (i * 37 + j * 17) % num_tiles
+                    tile_index = (i * 37 + j * 11) % num_tiles
                     chosen_tile = self.tile_images[tile_index]
 
                     self.surface.blit(chosen_tile, (tile_x, tile_y))
@@ -58,7 +58,7 @@ class Board:
         # Tworzymy prostokąt definiujący granice planszy
         border_rect = pygame.Rect(self.offset_x, self.offset_y, board_width, board_height)
         # Rysujemy obrys (kolor czarny, grubość 2 piksele)
-        pygame.draw.rect(self.surface, (255, 255, 255), border_rect, 10)
+        pygame.draw.rect(self.surface, (255, 255, 255), border_rect, 5)
 
     def draw(self, screen):
         screen.blit(self.surface, (0, 0))
