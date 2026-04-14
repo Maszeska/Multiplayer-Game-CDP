@@ -36,6 +36,7 @@ class GameScene:
         self.victory_timer = None
         self.victory_delay = 2000
 
+        self.ui_font = pygame.font.Font(MENU_FONT_PATH, 24)
     def _init_player(self):
         rows = len(self.board.grid)
         cols = len(self.board.grid[0])
@@ -154,7 +155,8 @@ class GameScene:
             'x': self.player.x, 'y': self.player.y,
             'is_moving': self.is_moving, 'facing_left': self.player.facing_left,
             'state': self.game_state, 'invulnerable_timer': self.player.invulnerable_timer,
-            'bomb_event': self.pending_bomb
+            'bomb_event': self.pending_bomb,
+            'lives': self.player.lives
         }
         try:
             self.all_players_data = self.network.send(my_data)
@@ -206,7 +208,56 @@ class GameScene:
                     # Rysujemy normalnie (jeśli stan to "dying", odegra animację i zniknie w następnej klatce)
                     enemy.draw(screen, data['state'], data['is_moving'])
 
+                    self.player.draw(screen, self.game_state, self.is_moving)
+                    self.draw_player_ui(screen)
+
         # 5. Rysowanie lokalnego gracza (Ciebie)
         # Rysujemy tylko, jeśli nie jesteśmy martwi
         if self.game_state != "dead":
             self.player.draw(screen, self.game_state, self.is_moving)
+
+    def draw_player_ui(self, screen):
+        # 1. Zbieramy dane o HP wszystkich graczy
+        players_hp = {}
+        # Twój lokalny gracz
+        players_hp[self.player_id] = self.player.lives
+
+        # Przeciwnicy z sieci
+        if self.all_players_data:
+            for i, data in enumerate(self.all_players_data):
+                if data is not None and i != self.player_id:
+                    players_hp[i] = data.get('lives', 0)  # Domyślnie 0, jeśli zginął/rozłączył się
+
+        # 2. Definiujemy pozycje (x, y) dla ID graczy
+        # P0: Lewa-Góra, P1: Prawa-Dół, P2: Prawa-Góra, P3: Lewa-Dół
+        margin_x, margin_y = 20, 20
+        box_w, box_h = 160, 50
+
+        ui_positions = {
+            0: (margin_x, margin_y),
+            1: (WIDTH - margin_x - box_w, HEIGHT - margin_y - box_h),
+            2: (WIDTH - margin_x - box_w, margin_y),
+            3: (margin_x, HEIGHT - margin_y - box_h)
+        }
+
+        # 3. Rysujemy UI dla każdego gracza
+        for pid, hp in players_hp.items():
+            if pid in ui_positions:
+                x, y = ui_positions[pid]
+
+                # Rysowanie półprzezroczystego tła pod UI, żeby było czytelne
+                bg_rect = pygame.Rect(x, y, box_w, box_h)
+                bg_surface = pygame.Surface((box_w, box_h), pygame.SRCALPHA)
+                bg_surface.fill((0, 0, 0, 150))  # Półprzezroczysty czarny
+                screen.blit(bg_surface, (x, y))
+                pygame.draw.rect(screen, (255, 255, 255), bg_rect, 2)  # Biała ramka
+
+                # Przygotowanie tekstu HP
+                # Jeśli gracz ma HP > 0, wyświetlamy na zielono, jeśli 0 na czerwono
+                color = (50, 255, 50) if hp > 0 else (255, 50, 50)
+                hp_text = f"P{pid + 1} HP: {max(0, hp)}"
+
+                text_surf = self.ui_font.render(hp_text, True, color)
+                # Centrowanie tekstu wewnątrz prostokąta
+                text_rect = text_surf.get_rect(center=bg_rect.center)
+                screen.blit(text_surf, text_rect)

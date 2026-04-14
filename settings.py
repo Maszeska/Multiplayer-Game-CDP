@@ -3,7 +3,7 @@ import pygame
 # ==========================================
 # 1. server configuration
 # ==========================================
-SERVER_IP = "10.117.228.38"  # Twoje IP lokalne
+SERVER_IP = "192.168.18.156"  # Twoje IP lokalne
 SERVER_PORT = 5555
 
 # ==========================================
