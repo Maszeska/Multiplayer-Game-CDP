@@ -22,7 +22,6 @@ class GameScene:
         self.enemies = {}
         self.active_bombs = []
         self.is_moving = False
-        self.pending_bomb = None
         self.all_players_data = []
 
         self.game_state = "shaking"
@@ -65,7 +64,6 @@ class GameScene:
                         if new_bomb:
                             new_bomb.owner = self.player_id
                             self.active_bombs.append(new_bomb)
-                            self.pending_bomb = (new_bomb.x, new_bomb.y)
         return None
 
     def update(self):
@@ -151,23 +149,29 @@ class GameScene:
                             self.change_scene("end_screen", self.final_ranking)
 
     def _handle_network(self):
+        # Create a list of all active bombs that belong to this player
+        my_bombs_data = []
+        for bomb in self.active_bombs:
+            if getattr(bomb, 'owner', -1) == self.player_id:
+                my_bombs_data.append({'x': bomb.x, 'y': bomb.y})
+        
         my_data = {
             'x': self.player.x, 'y': self.player.y,
             'is_moving': self.is_moving, 'facing_left': self.player.facing_left,
             'state': self.game_state, 'invulnerable_timer': self.player.invulnerable_timer,
-            'bomb_event': self.pending_bomb,
+            'bombs': my_bombs_data,
             'lives': self.player.lives
         }
         try:
             self.all_players_data = self.network.send(my_data)
-            self.pending_bomb = None
 
             if self.all_players_data:
                 for i, data in enumerate(self.all_players_data):
                     if i != self.player_id and data is not None:
-                        bomb_pos = data.get('bomb_event')
-                        if bomb_pos:
-                            bx, by = bomb_pos
+                        # Process all bombs from this player
+                        bombs_data = data.get('bombs', [])
+                        for bomb_pos in bombs_data:
+                            bx, by = bomb_pos['x'], bomb_pos['y']
                             already_exists = any(b.x == bx and b.y == by for b in self.active_bombs)
                             if not already_exists:
                                 enemy_bomb = Bomb(bx, by, self.board.tile_size)
