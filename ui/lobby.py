@@ -94,9 +94,18 @@ class Lobby(BaseMenu):
                             votes[vote] += 1
 
         if ready_count == connected_count and connected_count > 0:
-            winning_map_index = max(votes, key=votes.get)
-            print(f"Startujemy! Wygrała mapa: {winning_map_index}")
-            self.change_scene("game", winning_map_index)
+            # Find the maximum vote count
+            max_votes = max(votes.values())
+            # Count how many maps have this max vote count
+            maps_with_max_votes = [map_id for map_id, vote_count in votes.items() if vote_count == max_votes]
+            
+            # Only start if ONE map has the most votes (dominance, no ties)
+            if len(maps_with_max_votes) == 1:
+                winning_map_index = maps_with_max_votes[0]
+                print(f"Startujemy! Wygrała mapa: {winning_map_index}")
+                self.change_scene("game", winning_map_index)
+            else:
+                print(f"Tie detected: Maps {maps_with_max_votes} have equal votes. Waiting for dominance...")
 
     def draw(self, screen):
         self.parallax_bg.draw(screen)
