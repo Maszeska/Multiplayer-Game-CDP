@@ -3,7 +3,7 @@ import pygame
 # ==========================================
 # 1. server configuration
 # ==========================================
-SERVER_IP = "100.124.158.27"  # Twoje IP lokalne
+SERVER_IP = "100.83.138.125"  # Twoje IP lokalne
 SERVER_PORT = 5555
 
 # ==========================================
@@ -60,7 +60,8 @@ PODIUM_ANIM_SPEED = 0.15
 # ==========================================
 # --- Sounds ---
 MUSIC_PATH = "sounds/stateside_zara_larsson_sound.ogg"
-BOOM_SOUND_PATH = "sounds/boom.wav"
+BOOM_SOUND_PATH = "sounds/explosion.wav"
+HURT_SOUND_PATH = "sounds/hurt.wav"
 
 # --- UI Graphics ---
 ICON_PATH = "assets/bombs/bomb_icon.png"

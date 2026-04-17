@@ -114,7 +114,10 @@ class Lobby(BaseMenu):
         # Rysowanie przycisków z BaseMenu
         self.draw_buttons(screen, mouse_pos)
 
-        # --- INFORMACJE W LEWYM GÓRNYM ROGU (BIAŁE) ---
+        # --- INFORMACJE W LEWYM GÓRNYM ROGU ---
+        # Determine color: green if ready, white if not
+        status_color = "green" if self.is_ready else "white"
+
         # 1. Licznik gotowych graczy
         ready_players = sum([1 for d in self.network.all_players_data if d and d.get('is_ready')])
         info_surf = self.font_info.render(f"PLAYERS READY: {ready_players}/{self.network.connected_players_count}",
@@ -127,7 +130,7 @@ class Lobby(BaseMenu):
         else:
             status_text = "STATUS: CHOOSE MAP"
 
-        status_surf = self.font_info.render(status_text, True, "white")
+        status_surf = self.font_info.render(status_text, True, status_color)
         screen.blit(status_surf, (30, 70))
 
         # --- LOGIKA PODGLĄDU MAPY (HOVER ORAZ ZAPISANY GŁOS) ---
@@ -151,10 +154,6 @@ class Lobby(BaseMenu):
             display_index = self.map_vote
 
         # --- RYSOWANIE PODGLĄDU ---
-        # 1. Rysujemy ramkę dla podglądu
-        pygame.draw.rect(screen, (50, 50, 50), self.preview_rect.inflate(10, 10), border_radius=10)  # Ramka
-        pygame.draw.rect(screen, "black", self.preview_rect.inflate(10, 10), 2, border_radius=10)  # Obwódka ramki
-
         if display_index is not None and display_index < len(self.map_previews):
             # 2. Rysujemy podgląd mapy (najeżdżanej lub wybranej)
             preview_img = self.map_previews[display_index]
@@ -162,15 +161,12 @@ class Lobby(BaseMenu):
 
             # Zmieniamy tekst w zależności od tego, czy to tylko podgląd, czy ostateczny głos
             if display_index == self.map_vote and hovered_map_index is None:
+                # Chosen map: green text and green border
                 prev_text = self.font_prev.render(f"YOUR VOTE: MAP {display_index + 1}", True, "green")
+                pygame.draw.rect(screen, "green", self.preview_rect.inflate(10, 10), 3, border_radius=10)
             else:
+                # Preview
                 prev_text = self.font_prev.render(f"PREVIEW: MAP {display_index + 1}", True, "white")
 
             text_rect = prev_text.get_rect(centerx=self.preview_rect.centerx, bottom=self.preview_rect.top - 15)
             screen.blit(prev_text, text_rect)
-        else:
-            # 3. Jeśli nie najeżdżamy i jeszcze NIE ZAGŁOSOWALIŚMY, rysujemy szary pytajnik
-            pygame.draw.rect(screen, (80, 80, 80), self.preview_rect, border_radius=5)
-            q_surf = self.font_prev.render("?", True, (150, 150, 150))
-            q_rect = q_surf.get_rect(center=self.preview_rect.center)
-            screen.blit(q_surf, q_rect)

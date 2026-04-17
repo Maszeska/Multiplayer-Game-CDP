@@ -33,7 +33,7 @@ class GameScene:
         self.final_ranking = []
         # W metodzie __init__
         self.victory_timer = None
-        self.victory_delay = 2000
+        self.victory_delay = 200
 
         self.ui_font = pygame.font.Font(MENU_FONT_PATH, 24)
     def _init_player(self):
@@ -160,7 +160,8 @@ class GameScene:
             'is_moving': self.is_moving, 'facing_left': self.player.facing_left,
             'state': self.game_state, 'invulnerable_timer': self.player.invulnerable_timer,
             'bombs': my_bombs_data,
-            'lives': self.player.lives
+            'lives': self.player.lives,
+            'death_frame': self.player.death_frame_index
         }
         try:
             self.all_players_data = self.network.send(my_data)
@@ -208,12 +209,12 @@ class GameScene:
                     enemy.x, enemy.y = data['x'], data['y']
                     enemy.facing_left = data['facing_left']
                     enemy.invulnerable_timer = data.get('invulnerable_timer', 0)
+                    enemy.death_frame_index = data.get('death_frame', 0)
 
                     # Rysujemy normalnie (jeśli stan to "dying", odegra animację i zniknie w następnej klatce)
                     enemy.draw(screen, data['state'], data['is_moving'])
 
-                    self.player.draw(screen, self.game_state, self.is_moving)
-                    self.draw_player_ui(screen)
+        self.draw_player_ui(screen)
 
         # 5. Rysowanie lokalnego gracza (Ciebie)
         # Rysujemy tylko, jeśli nie jesteśmy martwi
