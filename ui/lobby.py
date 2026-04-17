@@ -45,6 +45,20 @@ class Lobby(BaseMenu):
 
         self.preview_rect = self.map_previews[0].get_rect(topright=(WIDTH - 50, HEIGHT * 0.25))
 
+        # --- LOAD PLAYERS ICONS ---
+        self.player_icons = []
+        for i in range(4):  # 4 Players max
+            try:
+                path = f"assets/player_images/player_{i}/player_{i}_idle.png"
+                img = pygame.image.load(path).convert_alpha()
+                icon = img.subsurface((0, 0, PLAYER_FRAME_W, PLAYER_FRAME_H))
+                icon = pygame.transform.scale(icon, (40, 40))
+                self.player_icons.append(icon)
+            except:
+                surf = pygame.Surface((40, 40))
+                surf.fill((100, 100, 100))
+                self.player_icons.append(surf)
+
     def reset_map_selection(self):
         """Reset the map selection state for a new round."""
         self.is_ready = False
@@ -66,6 +80,15 @@ class Lobby(BaseMenu):
         elif action == "GO BACK":
             # Jeśli gracz wychodzi, cofamy jego gotowość
             self.is_ready = False
+            self.map_vote = None
+
+            disconnect_data = {
+                'in_lobby': False,
+                'is_ready': False,
+                'map_vote': None
+            }
+
+            self.network.send(disconnect_data)
             self.change_scene("menu")
 
         return None
@@ -113,6 +136,29 @@ class Lobby(BaseMenu):
 
         # Rysowanie przycisków z BaseMenu
         self.draw_buttons(screen, mouse_pos)
+
+        # --- DRAW PLAYER ICON NEXT TO BUTTON THEY VOTED FOR ---
+        all_data = self.network.all_players_data
+        if all_data:
+            # Dict to keep track of how many players have voted for each map, to offset icons properly
+            offset_counters = {0: 0, 1: 0, 2: 0}
+
+            for i, data in enumerate(all_data):
+                if data and data.get('in_lobby') and data.get('map_vote') is not None:
+                    vote_idx = data.get('map_vote')
+
+                    if vote_idx in [0, 1, 2]:
+                        # Take button player clicked one and calculate icon position
+                        target_button_rect = self.buttons[vote_idx]["rect"]
+                        icon_x = target_button_rect.right + 15 + (offset_counters[vote_idx] * 45)
+                        icon_y = target_button_rect.centery - 20
+
+                        # Draw player icon and number
+                        screen.blit(self.player_icons[i], (icon_x, icon_y))
+                        label = self.font_info.render(f"P{i + 1}", True, "white")
+                        screen.blit(label, (icon_x + 5, icon_y + 35))
+
+                        offset_counters[vote_idx] += 1
 
         # --- INFORMACJE W LEWYM GÓRNYM ROGU ---
         # Determine color: green if ready, white if not
