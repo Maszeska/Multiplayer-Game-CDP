@@ -96,9 +96,8 @@ class Player(GameObject):
             idx = min(int(self.hatch_frame_index), len(self.hatch_frames) - 1)
             img = self.hatch_frames[idx]
 
-        elif game_state == "dying" or game_state == "game_over":
-            if game_state == "dying":
-                self.death_frame_index += ANIMATION_SPEED  # lub inna prędkość, np. 0.1
+        elif game_state == "dying" or game_state == "dead":
+            # Frame index is already incremented in game_scene.py update()
             idx = min(int(self.death_frame_index), len(self.death_frames) - 1)
             img = self.death_frames[idx]
 

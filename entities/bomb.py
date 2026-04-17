@@ -66,6 +66,7 @@ class Bomb(GameObject):
     def update(self, board):
         if self.state == "ticking":
             self.timer -= 1
+            self.current_frame += ANIMATION_SPEED
             if self.timer <= 0:
                 self.state = "exploding"
                 self.current_frame = 0
@@ -75,6 +76,7 @@ class Bomb(GameObject):
                     Bomb.explosion_sound.play()
 
         elif self.state == "exploding":
+            self.current_frame += 0.30
             if int(self.current_frame) >= len(self.blast_frames) - 1:
                 self.state = "done"
 
@@ -82,11 +84,7 @@ class Bomb(GameObject):
         if self.state == "done":
             return
 
-        if self.state == "ticking":
-            self.current_frame += ANIMATION_SPEED
-        elif self.state == "exploding":
-            self.current_frame += 0.30
-
+        # Draw blast effect tiles when exploding
         if self.state == "exploding":
             frame_idx = min(int(self.current_frame), len(self.blast_frames) - 1)
             blast_img = self.blast_frames[frame_idx]
@@ -96,10 +94,10 @@ class Bomb(GameObject):
                 rect_y = (row * board.tile_size) + board.offset_y
                 screen.blit(blast_img, (rect_x, rect_y))
 
+        # Draw the bomb itself
         if self.state == "ticking":
-
             img = self.idle_frames[int(self.current_frame) % len(self.idle_frames)]
-        else:
+        else:  # "exploding" state
             frame_idx_bomb = min(int(self.current_frame), len(self.explosion_frames) - 1)
             img = self.explosion_frames[frame_idx_bomb]
 

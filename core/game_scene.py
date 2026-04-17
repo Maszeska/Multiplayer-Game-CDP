@@ -99,7 +99,7 @@ class GameScene:
         elif self.game_state == "playing":
             self.is_moving = self.player.move(self.board)
         elif self.game_state == "dying":
-            self.player.death_frame_index += PLAYER_SPEED
+            self.player.death_frame_index += ANIMATION_SPEED
             if int(self.player.death_frame_index) >= len(self.player.death_frames) - 1:
                 self.game_state = "dead"
 

@@ -45,6 +45,11 @@ class Lobby(BaseMenu):
 
         self.preview_rect = self.map_previews[0].get_rect(topright=(WIDTH - 50, HEIGHT * 0.25))
 
+    def reset_map_selection(self):
+        """Reset the map selection state for a new round."""
+        self.is_ready = False
+        self.map_vote = None
+
     def handle_event(self, event):
         mouse_pos = pygame.mouse.get_pos()
         action = self.handle_button_event(event, mouse_pos)

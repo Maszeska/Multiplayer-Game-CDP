@@ -51,8 +51,11 @@ class BoomIt:
 
     def change_scene(self, scene_name, scene_data=None):
 
-        if scene_name == "lobby" and self.scenes["lobby"] is None:
-            self.scenes["lobby"] = Lobby(self.change_scene, self.network)
+        if scene_name == "lobby":
+            if self.scenes["lobby"] is None:
+                self.scenes["lobby"] = Lobby(self.change_scene, self.network)
+            # Reset map selection for new round
+            self.scenes["lobby"].reset_map_selection()
 
         elif scene_name == "game":
             self.scenes["game"] = GameScene(self.change_scene, self.network, scene_data)
