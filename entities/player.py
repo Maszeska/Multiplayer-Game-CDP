@@ -2,6 +2,9 @@ from settings import *
 from entities.game_object import GameObject
 from entities.bomb import Bomb
 
+#----------------------------------------------------
+# Player class - everything player is and does
+#----------------------------------------------------
 
 class Player(GameObject):
     def __init__(self, x, y, size, player_id):
@@ -39,10 +42,10 @@ class Player(GameObject):
             print("Hurt sound not found.")
             self.hurt_sound = None
 
+
     def move(self, board):
         keys = pygame.key.get_pressed()
         is_moving = False
-
 
         if keys[pygame.K_a]:
             self.facing_left = True
@@ -68,6 +71,7 @@ class Player(GameObject):
 
         return is_moving
 
+
     def get_grid_pos(self, board):
         center_x = self.x + (self.size / 2)
         center_y = self.y + (self.size / 2)
@@ -77,10 +81,11 @@ class Player(GameObject):
 
         return row, col
 
+
     def take_damage(self):
         if self.invulnerable_timer <= 0:
             self.lives -= 1
-            print(f"Ouch! Zostało żyć: {self.lives}")
+            print(f"Ouch! Lives left: {self.lives}")
             self.invulnerable_timer = FPS * 2
             if self.hurt_sound:
                 self.hurt_sound.play()
@@ -94,6 +99,7 @@ class Player(GameObject):
             return
         if self.invulnerable_timer > 0 and self.invulnerable_timer % 10 < 5 and game_state == "playing":
             return
+
         # Choosing animation based on game state
         if game_state == "shaking":
             self.shake_frame_index += SHAKE_ANIM_SPEED
@@ -127,6 +133,7 @@ class Player(GameObject):
         player_rect_height = self.size - HITBOX_BUFFER_TOP - HITBOX_BUFFER_BOTTOM
 
         return pygame.Rect(player_rect_left, player_rect_top, player_rect_width, player_rect_height)
+
 
     def drop_bomb(self, board):
         center_x = self.x + (self.size / 2)

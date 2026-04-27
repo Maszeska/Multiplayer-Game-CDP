@@ -4,16 +4,22 @@ import threading
 import time
 from settings import *
 
+#----------------------------------------------------
+#   Network connection class
+#----------------------------------------------------
+
 class Network:
     def __init__(self):
+                                                        # --- UDP ---
         self.client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.server = SERVER_IP
         self.port = SERVER_PORT
         self.server_addr = (self.server, self.port)
 
-        self.client.bind(('', 0))
+        self.client.bind(('', 0)) # 0 => pick any free port
         self.local_addr = self.client.getsockname()
 
+        # join the server
         self.start_pos = self.join()
 
         self.connected_players_count = 1
@@ -21,11 +27,14 @@ class Network:
         self.all_players_data = [None, None, None, None]
         self.running = True
 
+        # receive thread: listen for packages incoming
         self.receive_thread = threading.Thread(target=self._receive_loop, daemon=True)
         self.receive_thread.start()
 
+        # ping thread: ping every second to let the server know you're alive
         self.ping_thread = threading.Thread(target=self._ping_loop, daemon=True)
         self.ping_thread.start()
+
 
     def join(self):
         try:
@@ -38,6 +47,7 @@ class Network:
             print("Join error:", e)
             return None
 
+    # send player data on change
     def send(self, data):
         try:
             packet = (self.start_pos, data)
@@ -47,6 +57,7 @@ class Network:
         except Exception as e:
             print("Send error:", e)
             return self.all_players_data
+
 
     def _receive_loop(self):
         while self.running:

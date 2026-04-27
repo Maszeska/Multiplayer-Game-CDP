@@ -5,14 +5,16 @@ from entities.player import Player
 from entities.bomb import Bomb
 from ui.map_background import MapBackground  # <--- Dodany import tła mapy
 
+#----------------------------------------------------
+# Game Scene - Handle game state changes and states of all network objects -> During the main game
+#----------------------------------------------------
 
 class GameScene:
     def __init__(self, change_scene_callback, network, map_index):
         self.change_scene = change_scene_callback
 
-        # --- Dodane inicjalizowanie tła i zmodyfikowany Board ---
         self.map_bg = MapBackground(map_index)
-        self.board = Board(map_index)  # Zmienione na map_index, aby Board wiedział, jaką grafikę klocka załadować
+        self.board = Board(map_index)
 
         self.network = network
         self.player_id = int(self.network.start_pos)
@@ -26,20 +28,25 @@ class GameScene:
 
         self.game_state = "shaking"
 
+        #  initialising general timer
         self.start_time = pygame.time.get_ticks()
         self.min_game_duration = 3000
 
         self.dead_players = []
         self.final_ranking = []
-        # W metodzie __init__
+        # In method __init__
         self.victory_timer = None
         self.victory_delay = 200
 
         self.ui_font = pygame.font.Font(MENU_FONT_PATH, 24)
+
+
+    # --- initialise player's position ---
     def _init_player(self):
         rows = len(self.board.grid)
         cols = len(self.board.grid[0])
 
+        # place players on right positions based on their id
         if self.player_id == 0:
             grid_x, grid_y = 1, 1
         elif self.player_id == 1:
@@ -54,6 +61,9 @@ class GameScene:
 
         self.player = Player(start_x, start_y, self.board.tile_size, self.player_id)
 
+
+
+    # Handle placing bombs on map - ownership of bombs
     def handle_event(self, event):
         if event.type == pygame.KEYDOWN:
             if self.game_state == "playing":
@@ -66,6 +76,9 @@ class GameScene:
                             self.active_bombs.append(new_bomb)
         return None
 
+
+
+    # update game state
     def update(self):
         self.is_moving = False
         current_time = pygame.time.get_ticks()
@@ -106,6 +119,7 @@ class GameScene:
         if self.game_state == "dead" and self.player_id not in self.dead_players:
             self.dead_players.append(self.player_id)
 
+        # update data about all players
         if self.all_players_data:
             for i, data in enumerate(self.all_players_data):
                 if data and data.get('state') == "dead" and i not in self.dead_players:
@@ -126,6 +140,7 @@ class GameScene:
                                 if data.get('state') in active_states:
                                     alive_count += 1
 
+                    #                                      --- OPTIONAL: FOR THE PURPOSE OF DEBUGGING ---
                     if (total_players > 1 >= alive_count) or (total_players == 1 and alive_count == 0):
                         if self.victory_timer is None:
                             self.victory_timer = current_time
@@ -133,20 +148,17 @@ class GameScene:
                         elif current_time - self.victory_timer > self.victory_delay:
                             self.game_state = "game_over"
 
-                            # --- FIX RANKINGU: Używamy set(), żeby nie było duplikatów ---
                             all_ids = {self.player_id}
                             if self.all_players_data:
                                 for i, d in enumerate(self.all_players_data):
                                     if d is not None:
                                         all_ids.add(i)
 
-                            # Zwycięzcy (ci, których nie ma w dead_players)
                             winners = [pid for pid in all_ids if pid not in self.dead_players]
-
-                            # Ostateczna lista: Zwycięzca (lub zwycięzcy) + reszta w odwrotnej kolejności zgonów
                             self.final_ranking = winners + list(reversed(self.dead_players))
-
                             self.change_scene("end_screen", self.final_ranking)
+
+
 
     def _handle_network(self):
         # Create a list of all active bombs that belong to this player
@@ -179,26 +191,19 @@ class GameScene:
                                 enemy_bomb.owner = i
                                 self.active_bombs.append(enemy_bomb)
         except Exception as e:
-            print("Błąd synchronizacji:", e)
+            print("Synchronisation error:", e)
 
     def draw(self, screen):
-        # 1. NAJPIERW rysujemy tło z efektem paralaksy (na samym dole)
         self.map_bg.draw(screen)
-
-        # 2. Następnie rysujemy ściany planszy (background w Board musi być przezroczysty)
         self.board.draw(screen)
-
-        # 3. Rysujemy bomby
         for bomb in self.active_bombs:
             bomb.draw(screen, self.board)
 
-        # 4. Rysowanie przeciwników
         if self.all_players_data:
             for i, data in enumerate(self.all_players_data):
                 if i != self.player_id and data is not None:
                     if 'x' not in data: continue
 
-                    # Jeśli wróg jest "dead", po prostu go nie rysujemy (znika)
                     if data.get('state') == "dead":
                         continue
 
@@ -211,30 +216,22 @@ class GameScene:
                     enemy.invulnerable_timer = data.get('invulnerable_timer', 0)
                     enemy.death_frame_index = data.get('death_frame', 0)
 
-                    # Rysujemy normalnie (jeśli stan to "dying", odegra animację i zniknie w następnej klatce)
                     enemy.draw(screen, data['state'], data['is_moving'])
 
         self.draw_player_ui(screen)
 
-        # 5. Rysowanie lokalnego gracza (Ciebie)
-        # Rysujemy tylko, jeśli nie jesteśmy martwi
         if self.game_state != "dead":
             self.player.draw(screen, self.game_state, self.is_moving)
 
     def draw_player_ui(self, screen):
-        # 1. Zbieramy dane o HP wszystkich graczy
         players_hp = {}
-        # Twój lokalny gracz
         players_hp[self.player_id] = self.player.lives
 
-        # Przeciwnicy z sieci
         if self.all_players_data:
             for i, data in enumerate(self.all_players_data):
                 if data is not None and i != self.player_id:
-                    players_hp[i] = data.get('lives', 0)  # Domyślnie 0, jeśli zginął/rozłączył się
+                    players_hp[i] = data.get('lives', 0)
 
-        # 2. Definiujemy pozycje (x, y) dla ID graczy
-        # P0: Lewa-Góra, P1: Prawa-Dół, P2: Prawa-Góra, P3: Lewa-Dół
         margin_x, margin_y = 20, 20
         box_w, box_h = 160, 50
 
@@ -245,24 +242,19 @@ class GameScene:
             3: (margin_x, HEIGHT - margin_y - box_h)
         }
 
-        # 3. Rysujemy UI dla każdego gracza
         for pid, hp in players_hp.items():
             if pid in ui_positions:
                 x, y = ui_positions[pid]
 
-                # Rysowanie półprzezroczystego tła pod UI, żeby było czytelne
                 bg_rect = pygame.Rect(x, y, box_w, box_h)
                 bg_surface = pygame.Surface((box_w, box_h), pygame.SRCALPHA)
-                bg_surface.fill((0, 0, 0, 150))  # Półprzezroczysty czarny
+                bg_surface.fill((0, 0, 0, 150))
                 screen.blit(bg_surface, (x, y))
-                pygame.draw.rect(screen, (255, 255, 255), bg_rect, 2)  # Biała ramka
+                pygame.draw.rect(screen, (255, 255, 255), bg_rect, 2)
 
-                # Przygotowanie tekstu HP
-                # Jeśli gracz ma HP > 0, wyświetlamy na zielono, jeśli 0 na czerwono
                 color = (50, 255, 50) if hp > 0 else (255, 50, 50)
                 hp_text = f"P{pid + 1} HP: {max(0, hp)}"
 
                 text_surf = self.ui_font.render(hp_text, True, color)
-                # Centrowanie tekstu wewnątrz prostokąta
                 text_rect = text_surf.get_rect(center=bg_rect.center)
                 screen.blit(text_surf, text_rect)

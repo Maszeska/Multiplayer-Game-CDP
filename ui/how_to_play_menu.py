@@ -1,6 +1,10 @@
 from settings import *
 from ui.base_menu import BaseMenu
 
+#----------------------------------------------------
+# How to play screen - just controls
+#----------------------------------------------------
+
 class HowToPlayMenu(BaseMenu):
     def __init__(self):
         super().__init__()

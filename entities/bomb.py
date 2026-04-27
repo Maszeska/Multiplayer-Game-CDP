@@ -2,6 +2,9 @@ from settings import *
 from entities.game_object import GameObject
 import pygame
 
+#----------------------------------------------------
+# Bomb - an object player drops that gives damage
+#----------------------------------------------------
 
 class Bomb(GameObject):
     sound_loaded = False
@@ -10,18 +13,15 @@ class Bomb(GameObject):
     animations_loaded = False
     shared_idle_frames = []
     shared_explosion_frames = []
-    shared_blast_frames = []  # NOWE: Pamięć podręczna dla klatek ognia
+    shared_blast_frames = []
 
     def __init__(self, x, y, size):
         super().__init__(x, y, size)
 
-        # Ładowanie animacji tylko raz dla wszystkich bomb
         if not Bomb.animations_loaded:
             Bomb.shared_idle_frames = self.load_animation(BOMB_IDLE_PATH, 2, BOMB_FRAME_W, BOMB_FRAME_H)
             Bomb.shared_explosion_frames = self.load_animation(BOMB_EXPLOSION_PATH, 3, BOMB_FRAME_W, BOMB_FRAME_H)
-            # Ładujemy nową animację ognia
-            Bomb.shared_blast_frames = self.load_animation(BLAST_EFFECT_PATH, BLAST_FRAMES_NUM, BLAST_FRAME_W,
-                                                           BLAST_FRAME_H)
+            Bomb.shared_blast_frames = self.load_animation(BLAST_EFFECT_PATH, BLAST_FRAMES_NUM, BLAST_FRAME_W, BLAST_FRAME_H)
             Bomb.animations_loaded = True
 
         if not Bomb.sound_loaded:
@@ -30,12 +30,12 @@ class Bomb(GameObject):
                 Bomb.explosion_sound.set_volume(0.4)
                 Bomb.sound_loaded = True
             except pygame.error:
-                print("Nie udało się załadować pliku .wav z wybuchem.")
+                print("Couldn't load sound for explosion.")
                 Bomb.sound_loaded = True
 
         self.idle_frames = Bomb.shared_idle_frames
         self.explosion_frames = Bomb.shared_explosion_frames
-        self.blast_frames = Bomb.shared_blast_frames  # Przypisanie klatek ognia do bomby
+        self.blast_frames = Bomb.shared_blast_frames
 
         self.state = "ticking"
         self.timer = EXPLOSION_DURATION * FPS
@@ -62,6 +62,7 @@ class Bomb(GameObject):
                     break
 
                 self.blast_tiles.append((check_row, check_col))
+
 
     def update(self, board):
         if self.state == "ticking":

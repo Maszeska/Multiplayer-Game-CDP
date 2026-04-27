@@ -1,6 +1,9 @@
 from settings import *
 from ui.base_menu import BaseMenu
 
+#----------------------------------------------------
+# Lobby - choosing map and synchronising players start time
+#----------------------------------------------------
 
 class Lobby(BaseMenu):
     def __init__(self, change_scene_callback, network):
@@ -8,32 +11,26 @@ class Lobby(BaseMenu):
         self.change_scene = change_scene_callback
         self.network = network
 
-        # --- Czcionki ---
         self.font_info = pygame.font.Font(MENU_FONT_PATH, 30)
         self.font_prev = pygame.font.Font(MENU_FONT_PATH, 40)
 
-        # --- Stan lokalnego gracza ---
+        # --- Player state ---
         self.is_ready = False
-        self.map_vote = None  # Domyślnie brak głosu i brak gotowości
+        self.map_vote = None  # default -> no vote
 
-        # --- Tworzenie przycisków kolumny ---
         self.create_vertical_buttons(
             button_texts=["VOTE MAP 1", "VOTE MAP 2", "VOTE MAP 3", "GO BACK"],
             start_y=HEIGHT * 0.3
         )
 
-        # --- ŁADOWANIE PODGLĄDÓW MAP ---
         self.map_previews = []
-        target_preview_height = int(HEIGHT * 0.45)  # Podgląd zajmie 45% wysokości ekranu
+        target_preview_height = int(HEIGHT * 0.45)
 
-        # Zakładamy, że masz 3 mapy w settings.MAPS i odpowiadające im PNG
-        for i in range(1, 4):  # Pętla dla map_1, map_2, map_3
+        for i in range(1, 4):
             try:
-                # 1. Ładujemy obraz
                 path = f"assets/other/map_{i}.png"
                 img = pygame.image.load(path).convert_alpha()
 
-                # 2. Skalujemy go z zachowaniem proporcji
                 aspect_ratio = img.get_width() / img.get_height()
                 target_width = int(target_preview_height * aspect_ratio)
                 scaled_img = pygame.transform.smoothscale(img, (target_width, target_preview_height))
@@ -45,9 +42,9 @@ class Lobby(BaseMenu):
 
         self.preview_rect = self.map_previews[0].get_rect(topright=(WIDTH - 50, HEIGHT * 0.25))
 
-        # --- LOAD PLAYERS ICONS ---
+        # --- Load players icons ---
         self.player_icons = []
-        for i in range(4):  # 4 Players max
+        for i in range(4):
             try:
                 path = f"assets/player_images/player_{i}/player_{i}_idle.png"
                 img = pygame.image.load(path).convert_alpha()
@@ -60,7 +57,7 @@ class Lobby(BaseMenu):
                 self.player_icons.append(surf)
 
     def reset_map_selection(self):
-        """Reset the map selection state for a new round."""
+        # --- Reset the map selection state for a new round. ---
         self.is_ready = False
         self.map_vote = None
 
@@ -78,7 +75,7 @@ class Lobby(BaseMenu):
             self.map_vote = 2
             self.is_ready = True
         elif action == "GO BACK":
-            # Jeśli gracz wychodzi, cofamy jego gotowość
+            # if player leaves lobby -> not ready
             self.is_ready = False
             self.map_vote = None
 
@@ -121,8 +118,11 @@ class Lobby(BaseMenu):
             max_votes = max(votes.values())
             # Count how many maps have this max vote count
             maps_with_max_votes = [map_id for map_id, vote_count in votes.items() if vote_count == max_votes]
-            
+
+            # ---------------------------------------------------------------
             # Only start if ONE map has the most votes (dominance, no ties)
+            # ---------------------------------------------------------------
+
             if len(maps_with_max_votes) == 1:
                 winning_map_index = maps_with_max_votes[0]
                 print(f"Startujemy! Wygrała mapa: {winning_map_index}")
@@ -134,13 +134,9 @@ class Lobby(BaseMenu):
         self.parallax_bg.draw(screen)
         mouse_pos = pygame.mouse.get_pos()
 
-        # Rysowanie przycisków z BaseMenu
         self.draw_buttons(screen, mouse_pos)
-
-        # --- DRAW PLAYER ICON NEXT TO BUTTON THEY VOTED FOR ---
         all_data = self.network.all_players_data
         if all_data:
-            # Dict to keep track of how many players have voted for each map, to offset icons properly
             offset_counters = {0: 0, 1: 0, 2: 0}
 
             for i, data in enumerate(all_data):
@@ -148,29 +144,23 @@ class Lobby(BaseMenu):
                     vote_idx = data.get('map_vote')
 
                     if vote_idx in [0, 1, 2]:
-                        # Take button player clicked one and calculate icon position
                         target_button_rect = self.buttons[vote_idx]["rect"]
                         icon_x = target_button_rect.right + 15 + (offset_counters[vote_idx] * 45)
                         icon_y = target_button_rect.centery - 20
 
-                        # Draw player icon and number
                         screen.blit(self.player_icons[i], (icon_x, icon_y))
                         label = self.font_info.render(f"P{i + 1}", True, "white")
                         screen.blit(label, (icon_x + 5, icon_y + 35))
 
                         offset_counters[vote_idx] += 1
 
-        # --- INFORMACJE W LEWYM GÓRNYM ROGU ---
-        # Determine color: green if ready, white if not
         status_color = "green" if self.is_ready else "white"
 
-        # 1. Licznik gotowych graczy
         ready_players = sum([1 for d in self.network.all_players_data if d and d.get('is_ready')])
         info_surf = self.font_info.render(f"PLAYERS READY: {ready_players}/{self.network.connected_players_count}",
                                           True, "white")
         screen.blit(info_surf, (30, 30))
 
-        # 2. Status gotowości lokalnego gracza
         if self.is_ready:
             status_text = "STATUS: READY!"
         else:
@@ -179,10 +169,8 @@ class Lobby(BaseMenu):
         status_surf = self.font_info.render(status_text, True, status_color)
         screen.blit(status_surf, (30, 70))
 
-        # --- LOGIKA PODGLĄDU MAPY (HOVER ORAZ ZAPISANY GŁOS) ---
         hovered_map_index = None
 
-        # Iterujemy po przyciskach w BaseMenu, żeby znaleźć ten, na który najeżdżamy
         for i, button in enumerate(self.buttons):
             if button["rect"].collidepoint(mouse_pos):
                 action = button["action"]
@@ -194,24 +182,18 @@ class Lobby(BaseMenu):
                     elif "3" in action:
                         hovered_map_index = 2
 
-        # Wyświetlamy mapę, na którą najeżdżamy. Jeśli na nic nie najeżdżamy, pokazujemy wybraną mapę.
         display_index = hovered_map_index
         if display_index is None and self.is_ready:
             display_index = self.map_vote
 
-        # --- RYSOWANIE PODGLĄDU ---
         if display_index is not None and display_index < len(self.map_previews):
-            # 2. Rysujemy podgląd mapy (najeżdżanej lub wybranej)
             preview_img = self.map_previews[display_index]
             screen.blit(preview_img, self.preview_rect)
 
-            # Zmieniamy tekst w zależności od tego, czy to tylko podgląd, czy ostateczny głos
             if display_index == self.map_vote and hovered_map_index is None:
-                # Chosen map: green text and green border
                 prev_text = self.font_prev.render(f"YOUR VOTE: MAP {display_index + 1}", True, "green")
                 pygame.draw.rect(screen, "green", self.preview_rect.inflate(10, 10), 3, border_radius=10)
             else:
-                # Preview
                 prev_text = self.font_prev.render(f"PREVIEW: MAP {display_index + 1}", True, "white")
 
             text_rect = prev_text.get_rect(centerx=self.preview_rect.centerx, bottom=self.preview_rect.top - 15)

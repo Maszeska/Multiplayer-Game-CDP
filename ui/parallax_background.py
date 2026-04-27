@@ -1,8 +1,11 @@
 import pygame.transform
 from pygame.examples.grid import TILE_SIZE
 
-from entities.other_objects import *
+from entities.background_dino import *
 
+#----------------------------------------------------
+# Background for menu windows
+#----------------------------------------------------
 
 class ParallaxBackground:
     def __init__(self, layer_config):

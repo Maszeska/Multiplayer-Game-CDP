@@ -3,7 +3,7 @@ import pygame
 # ==========================================
 # 1. server configuration
 # ==========================================
-SERVER_IP = "100.83.138.125"  # Twoje IP lokalne
+SERVER_IP = "100.124.158.27"  # Twoje IP lokalne
 SERVER_PORT = 5555
 
 # ==========================================
@@ -40,7 +40,6 @@ EXPLOSION_DURATION = 1
 BOMB_RANGE = 2
 
 # --- (Blast effect) ---
-# --- Dodane do settings.py ---
 BLAST_EFFECT_PATH = "assets/bombs/explosion_effecy_1.png"
 BLAST_FRAME_W = 32
 BLAST_FRAME_H = 32

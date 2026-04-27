@@ -2,6 +2,9 @@ import pygame
 from settings import *
 from ui.parallax_background import ParallaxBackground
 
+#----------------------------------------------------
+# Basic form of menu window - Abstract Class
+#----------------------------------------------------
 
 class BaseMenu:
     def __init__(self):

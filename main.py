@@ -9,6 +9,9 @@ from ui.end_screen import EndScreen
 from core.game_scene import GameScene
 from core.network import Network
 
+#----------------------------------------------------
+# BOOM-IT main game loop
+#----------------------------------------------------
 
 def load_assets():
     try:
@@ -24,7 +27,7 @@ def load_assets():
         pass
 
 
-class BoomIt:
+class Main:
     def __init__(self):
         pygame.init()
         pygame.mixer.init()
@@ -34,6 +37,8 @@ class BoomIt:
         self.timer = pygame.time.Clock()
 
         self.ui_font = pygame.font.Font(MENU_FONT_PATH, 35)
+
+        # initialise Network object
         self.network = Network()
 
         load_assets()
@@ -49,8 +54,8 @@ class BoomIt:
 
         self.current_scene_name = "menu"
 
-    def change_scene(self, scene_name, scene_data=None):
 
+    def change_scene(self, scene_name, scene_data=None):
         if scene_name == "lobby":
             if self.scenes["lobby"] is None:
                 self.scenes["lobby"] = Lobby(self.change_scene, self.network)
@@ -65,8 +70,9 @@ class BoomIt:
 
         self.current_scene_name = scene_name
 
-        self.current_scene_name = scene_name
 
+
+    # while in menu -> change window when click navigation button
     def handle_events(self):
         current_scene = self.scenes[self.current_scene_name]
 
@@ -90,11 +96,16 @@ class BoomIt:
                     pygame.quit()
                     sys.exit()
 
+
+    #update scene
     def update(self):
         current_scene = self.scenes[self.current_scene_name]
         if hasattr(current_scene, "update"):
             current_scene.update()
 
+
+
+    # draw scene
     def draw(self):
         current_scene = self.scenes[self.current_scene_name]
         current_scene.draw(self.screen)
@@ -107,6 +118,7 @@ class BoomIt:
 
         pygame.display.flip()
 
+
     def run(self):
         while True:
             self.handle_events()
@@ -116,5 +128,5 @@ class BoomIt:
 
 
 if __name__ == "__main__":
-    game = BoomIt()
+    game = Main()
     game.run()

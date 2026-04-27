@@ -1,6 +1,9 @@
 from entities.game_object import GameObject
 from settings import *
 
+#----------------------------------------------------
+# Just cosmetic for background in menu
+#----------------------------------------------------
 
 class BackgroundDino(GameObject):
     def __init__(self, x, y, size):

@@ -1,6 +1,9 @@
 from settings import *
 from ui.base_menu import BaseMenu
 
+#----------------------------------------------------
+# Just main menu with title
+#----------------------------------------------------
 
 class MainMenu(BaseMenu):
     def __init__(self):

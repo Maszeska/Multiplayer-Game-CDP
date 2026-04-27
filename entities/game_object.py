@@ -1,12 +1,14 @@
 from settings import *
 
+#----------------------------------------------------
+# Game Object - an abstract for any object in the game
+#----------------------------------------------------
+
 class GameObject:
     def __init__(self, x, y, size):
-        # basics
         self.x = x
         self.y = y
         self.size = size
-        # animation general
         self.current_frame = 0
 
     # universal animation function for all objects

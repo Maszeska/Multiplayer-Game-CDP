@@ -4,17 +4,19 @@ from ui.base_menu import BaseMenu
 # Importujemy GameObject tutaj, aby mieć dostęp do klasy
 from entities.game_object import GameObject
 
+#----------------------------------------------------
+# End Screen - results of match shown with dinosaurs on podium
+#----------------------------------------------------
 
 class EndScreen(BaseMenu):
     def __init__(self, change_scene_callback, ranking):
         super().__init__()
         self.change_scene = change_scene_callback
-        self.ranking = ranking  # Lista ID graczy, np. [0, 2, 1]
+        self.ranking = ranking  # Ranking of players
 
         self.font_title = pygame.font.Font(MENU_FONT_PATH, 60)
         self.font_info = pygame.font.Font(MENU_FONT_PATH, 30)
 
-        # Wyśrodkowany przycisk powrotu
         btn_w, btn_h = self.font_max.size("BACK TO MENU")
         self.create_vertical_buttons(
             button_texts=["BACK TO MENU"],
@@ -22,23 +24,17 @@ class EndScreen(BaseMenu):
             x_pos=(WIDTH // 2) - (btn_w // 2)
         )
 
-        # --- ŁADOWANIE ANIMACJI SKOKU ---
         self.player_jump_animations = {}
         self.animation_indices = {1: 0.0, 2: 0.0, 3: 0.0}
 
         for i, pid in enumerate(self.ranking):
-            if i >= 3: break  # Tylko podium (TOP 3)
+            if i >= 3: break
             rank_place = i + 1
 
             try:
-                # Ścieżka do Twojego sprite sheeta ze skokiem
                 path = f"assets/player_images/player_{pid}/player_{pid}_jump.png"
-
-                # TWORZYMY OBIEKT DO ZAŁADOWANIA KLATEK
-                # Rozmiar 120 sprawi, że Twoja metoda w GameObject przeskaluje je idealnie na podium
                 temp_loader = GameObject(0, 0, 120)
 
-                # Wywołujemy metodę na stworzonym obiekcie (instancji), a nie na klasie!
                 scaled_frames = temp_loader.load_animation(
                     path,
                     PLAYER_JUMP_FRAMES,
@@ -48,14 +44,12 @@ class EndScreen(BaseMenu):
 
                 self.player_jump_animations[pid] = scaled_frames
 
-                # Przesunięcie animacji, żeby nie skakali identycznie w tym samym czasie
                 self.animation_indices[rank_place] = i * 2.0
 
             except Exception as e:
                 print(f"Błąd ładowania animacji dla P{pid}: {e}")
-                # Awaryjny kwadrat, jeśli grafika nie istnieje
                 surf = pygame.Surface((120, 120))
-                surf.fill((200, 0, 0))  # Czerwony alarmowy
+                surf.fill((200, 0, 0))
                 self.player_jump_animations[pid] = [surf]
 
     def handle_event(self, event):
@@ -66,20 +60,16 @@ class EndScreen(BaseMenu):
             self.change_scene("menu")
 
     def update(self):
-        # Aktualizujemy klatki animacji dla każdego podium
         for rank_place in self.animation_indices:
             self.animation_indices[rank_place] += PODIUM_ANIM_SPEED
 
     def draw(self, screen):
-        # Tło z menu (parallax)
         self.parallax_bg.draw(screen)
         mouse_pos = pygame.mouse.get_pos()
 
-        # --- TYTUŁ ---
         title_surf = self.font_title.render("MATCH RESULTS", True, (255, 255, 0))
         screen.blit(title_surf, (WIDTH // 2 - title_surf.get_width() // 2, 80))
 
-        # --- KONFIGURACJA PODIUM ---
         center_x = WIDTH // 2
         base_y = HEIGHT * 0.7
 
@@ -89,37 +79,30 @@ class EndScreen(BaseMenu):
             {"rank": 3, "x": center_x + 160, "h": 90, "color": (205, 127, 50)}  # Brąz
         ]
 
-        # --- RYSOWANIE ---
         for i, p_info in enumerate(podium_data):
             if i < len(self.ranking):
                 pid = self.ranking[i]
                 rank_place = i + 1
 
-                # 1. Blok podium
                 rect_x = p_info["x"] - 60
                 rect_y = base_y - p_info["h"]
                 pygame.draw.rect(screen, p_info["color"], (rect_x, rect_y, 120, p_info["h"]))
                 pygame.draw.rect(screen, (0, 0, 0), (rect_x, rect_y, 120, p_info["h"]), 4)
 
-                # Numer na podium
                 rank_text = self.font_title.render(str(p_info["rank"]), True, (255, 255, 255))
                 screen.blit(rank_text, (p_info["x"] - rank_text.get_width() // 2, rect_y + 15))
 
-                # 2. Skaczący gracz ze sprite sheeta
                 if pid in self.player_jump_animations:
                     frames = self.player_jump_animations[pid]
                     current_idx = int(self.animation_indices[rank_place]) % len(frames)
                     img = frames[current_idx]
 
-                    # Rysujemy gracza tuż nad podium
                     img_x = p_info["x"] - img.get_width() // 2
                     img_y = rect_y - img.get_height() + 10
 
                     screen.blit(img, (img_x, img_y))
 
-                    # Podpis "P0", "P1" itp.
                     p_text = self.font_info.render(f"PLAYER {pid}", True, (255, 255, 255))
                     screen.blit(p_text, (p_info["x"] - p_text.get_width() // 2, img_y - 30))
 
-        # Przyciski menu
         self.draw_buttons(screen, mouse_pos)

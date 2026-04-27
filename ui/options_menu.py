@@ -2,6 +2,9 @@ from settings import *
 from ui.base_menu import BaseMenu
 from entities.bomb import Bomb
 
+#----------------------------------------------------
+# Options menu - just options for sound
+#----------------------------------------------------
 
 class OptionsMenu(BaseMenu):
     def __init__(self):
@@ -14,7 +17,7 @@ class OptionsMenu(BaseMenu):
                 Bomb.explosion_sound = pygame.mixer.Sound(BOOM_SOUND_PATH)
                 Bomb.sound_loaded = True
             except pygame.error:
-                print("Nie udało się załadować pliku z dźwiękiem wybuchu.")
+                print("Couldn't load sound file.")
 
         self.music_volume = 50
         self.bomb_volume = 50
@@ -109,8 +112,8 @@ class OptionsMenu(BaseMenu):
         music_label = self.font_labels.render("MUSIC VOLUME:", True, "white")
         bomb_label = self.font_labels.render("BOMB VOLUME:", True, "white")
 
-        music_val = self.font_labels.render(f"{self.music_volume}%", True, "white")
-        bomb_val = self.font_labels.render(f"{self.bomb_volume}%", True, "white")
+        music_val = self.font_labels.render(f"{self.music_volume}", True, "white")
+        bomb_val = self.font_labels.render(f"{self.bomb_volume}", True, "white")
 
         screen.blit(music_label, (left_x, HEIGHT * 0.3))
         screen.blit(bomb_label, (left_x, HEIGHT * 0.45))
