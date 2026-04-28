@@ -18,7 +18,7 @@
 
 ```
 Multiplayer-Game-C-DP/
-├── boomit.py                    # Main game entry point and scene manager
+├── main.py                    # Main game entry point and scene manager
 ├── network_server.py            # UDP server for multiplayer networking
 ├── settings.py                  # Game configuration (constants, paths, settings)
 │
@@ -31,7 +31,7 @@ Multiplayer-Game-C-DP/
 │   ├── game_object.py           # Base class for all game entities
 │   ├── player.py                # Player character class with animations
 │   ├── bomb.py                  # Bomb and explosion logic
-│   └── other_objects.py         # Additional game objects
+│   └── background_diamond.py    # Additional game objects
 │
 ├── ui/
 │   ├── base_menu.py             # Base menu class (button handling, navigation)
@@ -66,7 +66,7 @@ Multiplayer-Game-C-DP/
 
 ### Core Components:
 
-- **boomit.py** - Game controller that manages scene transitions (menu → lobby → game → end screen)
+- **main.py** - Game controller that manages scene transitions (menu → lobby → game → end screen)
 - **settings.py** - Centralized configuration for all game constants, asset paths, and gameplay parameters
 - **network.py** - Handles client-side network communication with background threads
 - **network_server.py** - UDP server that manages player connections and game state synchronization
@@ -186,10 +186,10 @@ The BoomIt project employs several concurrent programming techniques to handle r
 2. Install dependencies: `pip install pygame`
 3. Update `SERVER_IP` in `settings.py` with server machine's IP address
 4. Start the server: `python network_server.py`
-5. Run the game: `python boomit.py`
+5. Run the game: `python main.py`
 
 ### Running the Game:
-1. Launch multiple instances of `boomit.py` (up to 4 clients)
+1. Launch multiple instances of `main.py` (up to 4 clients)
 2. Each client connects to the server
 3. Join game and wait for other players
 4. Once 2-4 players are ready, the game begins
