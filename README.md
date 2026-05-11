@@ -138,8 +138,9 @@ The BoomIt project employs several concurrent programming techniques to handle r
 ---
 
 ## Screenshots
-
-[filmik z gry]
+![menu_screen.png](png/menu_screen.png)
+![game_screen.png](png/game_screen.png)
+![end_screen.png](png/end_screen.png)
 
 
 ---
